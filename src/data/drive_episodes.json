@@ -12826,7 +12826,104 @@
   },
   "tioanime-yofukashi-no-uta-season-2": {
     "title": "Yofukashi no Uta Season 2",
-    "episodes": {}
+    "episodes": {
+      "ep-1": {
+        "fileId": "1SJ-NZ6Jgzc-iq2RR2HwpRNWt_QmZConc",
+        "streamUrl": "https://drive.google.com/file/d/1SJ-NZ6Jgzc-iq2RR2HwpRNWt_QmZConc/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 01.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 01.mp4",
+        "sizeMB": "349.57",
+        "uploadedAt": "2026-09-08T09:11:03.268Z"
+      },
+      "ep-2": {
+        "fileId": "1x7jvOgZifj_Sf0Gqlo0HtXbgGHhzFbei",
+        "streamUrl": "https://drive.google.com/file/d/1x7jvOgZifj_Sf0Gqlo0HtXbgGHhzFbei/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 02.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 02.mp4",
+        "sizeMB": "321.87",
+        "uploadedAt": "2026-09-08T09:14:10.681Z"
+      },
+      "ep-3": {
+        "fileId": "1Ij5IT0_K1UEWy06O48OU-m9nOEyxBSqZ",
+        "streamUrl": "https://drive.google.com/file/d/1Ij5IT0_K1UEWy06O48OU-m9nOEyxBSqZ/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 03.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 03.mp4",
+        "sizeMB": "283.64",
+        "uploadedAt": "2026-09-08T09:20:50.145Z"
+      },
+      "ep-4": {
+        "fileId": "1Gmv0hjQLAjzkf3kKK5mxzOjiokfqovj2",
+        "streamUrl": "https://drive.google.com/file/d/1Gmv0hjQLAjzkf3kKK5mxzOjiokfqovj2/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 04.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 04.mp4",
+        "sizeMB": "659.27",
+        "uploadedAt": "2026-09-08T09:27:03.717Z"
+      },
+      "ep-5": {
+        "fileId": "1C-GkJ5_zqpxjpterFeatnPGbDZRcY5It",
+        "streamUrl": "https://drive.google.com/file/d/1C-GkJ5_zqpxjpterFeatnPGbDZRcY5It/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 05.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 05.mp4",
+        "sizeMB": "295.73",
+        "uploadedAt": "2026-09-08T09:29:59.171Z"
+      },
+      "ep-6": {
+        "fileId": "1jwKp2kUh46cUrlodP_4v7AEVx9DoLJSE",
+        "streamUrl": "https://drive.google.com/file/d/1jwKp2kUh46cUrlodP_4v7AEVx9DoLJSE/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 06.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 06.mp4",
+        "sizeMB": "310.64",
+        "uploadedAt": "2026-09-08T09:33:05.437Z"
+      },
+      "ep-7": {
+        "fileId": "1JbaXpv9XmZojbpdduOd6dut8Sb3tNAZN",
+        "streamUrl": "https://drive.google.com/file/d/1JbaXpv9XmZojbpdduOd6dut8Sb3tNAZN/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 07.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 07.mp4",
+        "sizeMB": "245.59",
+        "uploadedAt": "2026-09-08T10:08:43.131Z"
+      },
+      "ep-8": {
+        "fileId": "1lxdhyz7CQc1dzQmR8HMETXchkb_aHKWr",
+        "streamUrl": "https://drive.google.com/file/d/1lxdhyz7CQc1dzQmR8HMETXchkb_aHKWr/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 08.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 08.mp4",
+        "sizeMB": "340.75",
+        "uploadedAt": "2026-09-08T10:12:00.016Z"
+      },
+      "ep-9": {
+        "fileId": "1ac7bTNfuApaOjEzC05t9OLb78_9v2OQ2",
+        "streamUrl": "https://drive.google.com/file/d/1ac7bTNfuApaOjEzC05t9OLb78_9v2OQ2/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 09.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 09.mp4",
+        "sizeMB": "297.37",
+        "uploadedAt": "2026-09-08T10:14:49.343Z"
+      },
+      "ep-10": {
+        "fileId": "1H2y0cq3pOA9ZfhgrwFzqG6JF9xBjybeU",
+        "streamUrl": "https://drive.google.com/file/d/1H2y0cq3pOA9ZfhgrwFzqG6JF9xBjybeU/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 10.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 10.mp4",
+        "sizeMB": "318.49",
+        "uploadedAt": "2026-09-08T10:17:54.930Z"
+      },
+      "ep-11": {
+        "fileId": "1GVpqgqoPJ2ewZGnpduk_K1EEUKu7GaVp",
+        "streamUrl": "https://drive.google.com/file/d/1GVpqgqoPJ2ewZGnpduk_K1EEUKu7GaVp/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 11.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 11.mp4",
+        "sizeMB": "273.91",
+        "uploadedAt": "2026-09-08T10:23:54.515Z"
+      },
+      "ep-12": {
+        "fileId": "11J5Xgr7ubnqgQI2zur1drP99tsL3BlCW",
+        "streamUrl": "https://drive.google.com/file/d/11J5Xgr7ubnqgQI2zur1drP99tsL3BlCW/preview",
+        "gdrivePath": "Yofukashi no Uta/2da Temporada/Yofukashi no Uta Season 2 - Episodio 12.mp4",
+        "filename": "Yofukashi no Uta Season 2 - Episodio 12.mp4",
+        "sizeMB": "243.71",
+        "uploadedAt": "2026-09-08T10:52:43.281Z"
+      }
+    }
   },
   "tioanime-dragon-ball-daima": {
     "title": "Dragon Ball Daima",
@@ -12995,7 +13092,104 @@
   },
   "tioanime-yarinaoshi-reijou-wa-ryuutei-heika-wo-kouryakuchuu": {
     "title": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu",
-    "episodes": {}
+    "episodes": {
+      "ep-1": {
+        "fileId": "1wE4d62lFLg5-K0aGex_nEgbseUrbGJeZ",
+        "streamUrl": "https://drive.google.com/file/d/1wE4d62lFLg5-K0aGex_nEgbseUrbGJeZ/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 01.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 01.mp4",
+        "sizeMB": "232.77",
+        "uploadedAt": "2026-09-08T13:37:48.498Z"
+      },
+      "ep-2": {
+        "fileId": "1mXNgx_bnY3fBTK_1s_syFhyguO2hyh97",
+        "streamUrl": "https://drive.google.com/file/d/1mXNgx_bnY3fBTK_1s_syFhyguO2hyh97/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 02.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 02.mp4",
+        "sizeMB": "219.95",
+        "uploadedAt": "2026-09-08T13:40:09.747Z"
+      },
+      "ep-3": {
+        "fileId": "1Sjre_Mm6B8r-ZXlUCMrR370iqDyHmq4P",
+        "streamUrl": "https://drive.google.com/file/d/1Sjre_Mm6B8r-ZXlUCMrR370iqDyHmq4P/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 03.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 03.mp4",
+        "sizeMB": "213.71",
+        "uploadedAt": "2026-09-08T13:43:22.592Z"
+      },
+      "ep-4": {
+        "fileId": "1ySC91rUV6bkisIo7KFrpH33N6vbKlLKK",
+        "streamUrl": "https://drive.google.com/file/d/1ySC91rUV6bkisIo7KFrpH33N6vbKlLKK/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 04.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 04.mp4",
+        "sizeMB": "219.59",
+        "uploadedAt": "2026-09-08T13:46:02.699Z"
+      },
+      "ep-5": {
+        "fileId": "1AOpIKdsGxPDaTmIxLGnCydGHYZ84gEeD",
+        "streamUrl": "https://drive.google.com/file/d/1AOpIKdsGxPDaTmIxLGnCydGHYZ84gEeD/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 05.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 05.mp4",
+        "sizeMB": "209.01",
+        "uploadedAt": "2026-09-08T13:48:05.676Z"
+      },
+      "ep-6": {
+        "fileId": "1dal24ShSguMHcDzQ4EJ8W6Abml1N3Kt_",
+        "streamUrl": "https://drive.google.com/file/d/1dal24ShSguMHcDzQ4EJ8W6Abml1N3Kt_/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 06.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 06.mp4",
+        "sizeMB": "282.80",
+        "uploadedAt": "2026-09-08T13:50:45.634Z"
+      },
+      "ep-7": {
+        "fileId": "10B1nLUTq_Z0KFstcPdwz12vZwalhahzI",
+        "streamUrl": "https://drive.google.com/file/d/10B1nLUTq_Z0KFstcPdwz12vZwalhahzI/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 07.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 07.mp4",
+        "sizeMB": "286.90",
+        "uploadedAt": "2026-09-08T13:56:54.246Z"
+      },
+      "ep-8": {
+        "fileId": "1eyeMxe7kBT52zrmpmHny_aSLpI_LdkAF",
+        "streamUrl": "https://drive.google.com/file/d/1eyeMxe7kBT52zrmpmHny_aSLpI_LdkAF/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 08.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 08.mp4",
+        "sizeMB": "247.85",
+        "uploadedAt": "2026-09-08T14:12:46.659Z"
+      },
+      "ep-9": {
+        "fileId": "1q2RrmUcsFpkSkYAKnVOkMWy1ZmEkUhkx",
+        "streamUrl": "https://drive.google.com/file/d/1q2RrmUcsFpkSkYAKnVOkMWy1ZmEkUhkx/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 09.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 09.mp4",
+        "sizeMB": "206.86",
+        "uploadedAt": "2026-09-08T14:15:07.469Z"
+      },
+      "ep-10": {
+        "fileId": "1nYG5n5AJimNdy1tGOeCr3lwSGWlRZebC",
+        "streamUrl": "https://drive.google.com/file/d/1nYG5n5AJimNdy1tGOeCr3lwSGWlRZebC/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 10.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 10.mp4",
+        "sizeMB": "266.21",
+        "uploadedAt": "2026-09-08T14:17:44.651Z"
+      },
+      "ep-11": {
+        "fileId": "17G6J2Thfdyf6sP4LtwxBq2wG5gFjzd1a",
+        "streamUrl": "https://drive.google.com/file/d/17G6J2Thfdyf6sP4LtwxBq2wG5gFjzd1a/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 11.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 11.mp4",
+        "sizeMB": "267.42",
+        "uploadedAt": "2026-09-08T14:23:45.738Z"
+      },
+      "ep-12": {
+        "fileId": "1VmIg8nT_ILdUXnka2SSYILVH21LFj1mL",
+        "streamUrl": "https://drive.google.com/file/d/1VmIg8nT_ILdUXnka2SSYILVH21LFj1mL/preview",
+        "gdrivePath": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu/Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 12.mp4",
+        "filename": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu - Episodio 12.mp4",
+        "sizeMB": "292.25",
+        "uploadedAt": "2026-09-08T14:33:58.194Z"
+      }
+    }
   },
   "tioanime-ranma-12-2024": {
     "title": "Ranma ½ (2024)",
@@ -13003,7 +13197,112 @@
   },
   "tioanime-atri-my-dear-moments": {
     "title": "Atri: My Dear Moments",
-    "episodes": {}
+    "episodes": {
+      "ep-1": {
+        "fileId": "1Eq44sQwsioH9wC8zluSMtdZXFb1i1sX3",
+        "streamUrl": "https://drive.google.com/file/d/1Eq44sQwsioH9wC8zluSMtdZXFb1i1sX3/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 01.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 01.mp4",
+        "sizeMB": "237.49",
+        "uploadedAt": "2026-09-08T12:02:43.045Z"
+      },
+      "ep-2": {
+        "fileId": "1ABz_xUF51HPtAtXjAG-mWlcql1MkYSHo",
+        "streamUrl": "https://drive.google.com/file/d/1ABz_xUF51HPtAtXjAG-mWlcql1MkYSHo/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 02.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 02.mp4",
+        "sizeMB": "238.34",
+        "uploadedAt": "2026-09-08T12:05:20.615Z"
+      },
+      "ep-3": {
+        "fileId": "18kDBI4s417fHfnDBQ33urHtR-uyObV-C",
+        "streamUrl": "https://drive.google.com/file/d/18kDBI4s417fHfnDBQ33urHtR-uyObV-C/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 03.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 03.mp4",
+        "sizeMB": "226.61",
+        "uploadedAt": "2026-09-08T12:08:46.855Z"
+      },
+      "ep-4": {
+        "fileId": "1GnO1nrH4vtYusOun5PP9fY5K4P8jokeW",
+        "streamUrl": "https://drive.google.com/file/d/1GnO1nrH4vtYusOun5PP9fY5K4P8jokeW/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 04.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 04.mp4",
+        "sizeMB": "202.96",
+        "uploadedAt": "2026-09-08T12:11:05.399Z"
+      },
+      "ep-5": {
+        "fileId": "1SddJ7NAYiaR0A_emCT_FpT7_-ZIIrXF5",
+        "streamUrl": "https://drive.google.com/file/d/1SddJ7NAYiaR0A_emCT_FpT7_-ZIIrXF5/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 05.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 05.mp4",
+        "sizeMB": "200.03",
+        "uploadedAt": "2026-09-08T12:13:08.279Z"
+      },
+      "ep-6": {
+        "fileId": "1KTBiPycfEooimizvLFI359W6t4A1xPN0",
+        "streamUrl": "https://drive.google.com/file/d/1KTBiPycfEooimizvLFI359W6t4A1xPN0/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 06.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 06.mp4",
+        "sizeMB": "182.17",
+        "uploadedAt": "2026-09-08T12:14:56.811Z"
+      },
+      "ep-7": {
+        "fileId": "1r5GydKbUtJvwUvy8l1i5Hyaz8bQj2D0S",
+        "streamUrl": "https://drive.google.com/file/d/1r5GydKbUtJvwUvy8l1i5Hyaz8bQj2D0S/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 07.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 07.mp4",
+        "sizeMB": "223.91",
+        "uploadedAt": "2026-09-08T12:57:09.359Z"
+      },
+      "ep-8": {
+        "fileId": "1yI9aS49RG9T0qVQqFANFnkwMqeoOhgch",
+        "streamUrl": "https://drive.google.com/file/d/1yI9aS49RG9T0qVQqFANFnkwMqeoOhgch/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 08.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 08.mp4",
+        "sizeMB": "190.42",
+        "uploadedAt": "2026-09-08T12:59:08.346Z"
+      },
+      "ep-9": {
+        "fileId": "1KyNlTfZML14IuFcpQzrSbfHl29tUvYz9",
+        "streamUrl": "https://drive.google.com/file/d/1KyNlTfZML14IuFcpQzrSbfHl29tUvYz9/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 09.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 09.mp4",
+        "sizeMB": "262.47",
+        "uploadedAt": "2026-09-08T13:01:44.911Z"
+      },
+      "ep-10": {
+        "fileId": "1Esx8uksF5ef9vxXk6oU8g-Vlwmrq5A8H",
+        "streamUrl": "https://drive.google.com/file/d/1Esx8uksF5ef9vxXk6oU8g-Vlwmrq5A8H/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 10.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 10.mp4",
+        "sizeMB": "309.29",
+        "uploadedAt": "2026-09-08T13:04:52.613Z"
+      },
+      "ep-11": {
+        "fileId": "1IOO1IBRTnsLl-yZ7yOqCJIMUuMJ5k6CU",
+        "streamUrl": "https://drive.google.com/file/d/1IOO1IBRTnsLl-yZ7yOqCJIMUuMJ5k6CU/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 11.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 11.mp4",
+        "sizeMB": "197.34",
+        "uploadedAt": "2026-09-08T13:07:01.103Z"
+      },
+      "ep-12": {
+        "fileId": "1iY5jVEinI0j4JTnZlJ0U7JHqabQhKndu",
+        "streamUrl": "https://drive.google.com/file/d/1iY5jVEinI0j4JTnZlJ0U7JHqabQhKndu/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 12.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 12.mp4",
+        "sizeMB": "227.34",
+        "uploadedAt": "2026-09-08T13:09:54.699Z"
+      },
+      "ep-13": {
+        "fileId": "1FyMmfJCyLn9FSrcG-8UpUGyoP1HzhO15",
+        "streamUrl": "https://drive.google.com/file/d/1FyMmfJCyLn9FSrcG-8UpUGyoP1HzhO15/preview",
+        "gdrivePath": "Atri_ My Dear Moments/Atri: My Dear Moments - Episodio 13.mp4",
+        "filename": "Atri: My Dear Moments - Episodio 13.mp4",
+        "sizeMB": "233.07",
+        "uploadedAt": "2026-09-08T13:12:11.418Z"
+      }
+    }
   },
   "tioanime-kimi-no-koto-ga-daidaidaidaidaisuki-na-100nin-no-kanojo": {
     "title": "Kimi no Koto ga Daidaidaidaidaisuki na 100-nin no Kanojo",
