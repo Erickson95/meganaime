@@ -448,6 +448,21 @@ export async function createExpressApp() {
     timezone: "America/New_York"
   });
 
+  // Automatic Airing Anime Downloader: checks for new releases every 30 minutes
+  cron.schedule("*/30 * * * *", () => {
+    console.log("[Auto-Downloader Cron] ⏰ Triggering scheduled 30-min airing anime sweep...");
+    try {
+      const { spawn } = require("child_process");
+      const scriptPath = path.join(process.cwd(), "scripts/auto_airing_downloader.cjs");
+      if (fs.existsSync(scriptPath)) {
+        const child = spawn("node", [scriptPath], { detached: true, stdio: "ignore" });
+        child.unref();
+      }
+    } catch (e: any) {
+      console.warn("[Auto-Downloader Cron] Failed to spawn sweep:", e.message);
+    }
+  });
+
   // Pre-fetch the latest episodes asynchronously after server startup (skip during Firebase CLI analysis)
   if (process.env.K_SERVICE || (!process.argv.includes("deploy") && process.env.NODE_ENV === "production")) {
     setTimeout(() => {
@@ -755,6 +770,28 @@ export async function createExpressApp() {
     }
     const result = await publishRandomAnimeIfDue();
     return res.json(result);
+  });
+
+  // ── Periodic Airing Anime Auto-Downloader Trigger Endpoint ──
+  app.all("/api/admin/auto-download", (req, res) => {
+    const secret = req.headers["x-cron-secret"] || req.body?.secret || req.query?.secret;
+    const CRON_SECRET = process.env.CRON_SECRET || "megaanime_cron_2026";
+    if (secret && secret !== CRON_SECRET) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+      const { spawn } = require("child_process");
+      const scriptPath = path.join(process.cwd(), "scripts/auto_airing_downloader.cjs");
+      if (fs.existsSync(scriptPath)) {
+        const child = spawn("node", [scriptPath], { detached: true, stdio: "ignore" });
+        child.unref();
+        return res.json({ success: true, message: "Auto-downloader sweep triggered in background." });
+      } else {
+        return res.status(404).json({ success: false, error: "auto_airing_downloader.cjs not found" });
+      }
+    } catch (e: any) {
+      return res.status(500).json({ success: false, error: e.message });
+    }
   });
 
   // ── Automatic Facebook Page Posting Admin Endpoint ──

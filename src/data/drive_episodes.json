@@ -11102,7 +11102,7 @@
         "gdrivePath": "Buchigire Reijou wa Houfuku wo Chikaimashita./Buchigire Reijou wa Houfuku wo Chikaimashita. - Episodio 09.mp4",
         "filename": "Buchigire Reijou wa Houfuku wo Chikaimashita. - Episodio 09.mp4",
         "sizeMB": "235.89",
-        "uploadedAt": "2026-09-06T08:54:09.618Z"
+        "uploadedAt": "2026-09-08T19:07:52.303Z"
       },
       "ep-6": {
         "fileId": "1EV4_1tE10J27CFwfegxsjZoHfCZgLArx",
@@ -12163,7 +12163,7 @@
         "gdrivePath": "Saijo no Osewa/Saijo no Osewa - Episodio 09.mp4",
         "filename": "Saijo no Osewa - Episodio 09.mp4",
         "sizeMB": "160.14",
-        "uploadedAt": "2026-09-06T08:54:09.624Z"
+        "uploadedAt": "2026-09-08T19:08:05.703Z"
       },
       "ep-3": {
         "fileId": "1QSLzMZzNwZr8GWm08G0s9jljRViOCSu4",
@@ -12679,6 +12679,14 @@
         "filename": "Re:ZERO -Starting Life in Another World- 4th Season - Episodio 14.mp4",
         "sizeMB": "303.64",
         "uploadedAt": "2026-09-08T18:37:43.464Z"
+      },
+      "ep-15": {
+        "fileId": "1XKXKJISELYJjFBD7WvyN32Jajxpamuwy",
+        "streamUrl": "https://drive.google.com/file/d/1XKXKJISELYJjFBD7WvyN32Jajxpamuwy/preview",
+        "gdrivePath": "Re_Zero kara Hajimeru Isekai Seikatsu/4ta Temporada/Re:ZERO -Starting Life in Another World- 4th Season - Episodio 15.mp4",
+        "filename": "Re:ZERO -Starting Life in Another World- 4th Season - Episodio 15.mp4",
+        "sizeMB": "296.95",
+        "uploadedAt": "2026-09-08T19:06:41.601Z"
       }
     }
   },
@@ -14490,6 +14498,14 @@
         "filename": "Grand Blue Season 3 - Episodio 03.mp4",
         "sizeMB": "159.62",
         "uploadedAt": "2026-09-06T09:05:09.555Z"
+      },
+      "ep-10": {
+        "fileId": "1DXDQIc3hKafz8EppG0k8n-1_B6jiw_Qr",
+        "streamUrl": "https://drive.google.com/file/d/1DXDQIc3hKafz8EppG0k8n-1_B6jiw_Qr/preview",
+        "gdrivePath": "Grand Blue/3ra Temporada/Grand Blue Season 3 - Episodio 10.mp4",
+        "filename": "Grand Blue Season 3 - Episodio 10.mp4",
+        "sizeMB": "333.28",
+        "uploadedAt": "2026-09-08T19:21:57.560Z"
       }
     }
   },

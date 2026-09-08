@@ -173,6 +173,7 @@ export async function recoverCoverImageInHotPath(
     if (res.ok) {
       const data = await res.json();
       if (data.coverUrl) {
+        const trimmed = String(data.coverUrl).trim();
         // Set the recovered cover using fast whitelist / proxy handler
         imgElement.src = getProxyImageUrl(trimmed, title);
 
