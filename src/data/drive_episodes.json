@@ -12711,6 +12711,46 @@
         "filename": "Yomi no Tsugai - Episodio 06.mp4",
         "sizeMB": "298.71",
         "uploadedAt": "2026-09-06T08:54:09.628Z"
+      },
+      "ep-1": {
+        "fileId": "1Fg09pmahE3d6Jy5blibmelwsL4M4ON2p",
+        "streamUrl": "https://drive.google.com/file/d/1Fg09pmahE3d6Jy5blibmelwsL4M4ON2p/preview",
+        "gdrivePath": "Yomi no Tsugai/Yomi no Tsugai - Episodio 01.mp4",
+        "filename": "Yomi no Tsugai - Episodio 01.mp4",
+        "sizeMB": "405.73",
+        "uploadedAt": "2026-09-08T00:26:15.062Z"
+      },
+      "ep-5": {
+        "fileId": "1NOBhdGCpLtcKwV0yrR_BLGZ_mGjPitcK",
+        "streamUrl": "https://drive.google.com/file/d/1NOBhdGCpLtcKwV0yrR_BLGZ_mGjPitcK/preview",
+        "gdrivePath": "Yomi no Tsugai/Yomi no Tsugai - Episodio 05.mp4",
+        "filename": "Yomi no Tsugai - Episodio 05.mp4",
+        "sizeMB": "379.78",
+        "uploadedAt": "2026-09-08T00:43:53.897Z"
+      },
+      "ep-14": {
+        "fileId": "1T5APqmMAJ7_G_tuqeFbZJ4DoZzPW7gAE",
+        "streamUrl": "https://drive.google.com/file/d/1T5APqmMAJ7_G_tuqeFbZJ4DoZzPW7gAE/preview",
+        "gdrivePath": "Yomi no Tsugai/Yomi no Tsugai - Episodio 14.mp4",
+        "filename": "Yomi no Tsugai - Episodio 14.mp4",
+        "sizeMB": "349.66",
+        "uploadedAt": "2026-09-08T00:50:12.091Z"
+      },
+      "ep-18": {
+        "fileId": "1U3_mEkN58sxl5cSCUi7vPMSyNZpPGyOu",
+        "streamUrl": "https://drive.google.com/file/d/1U3_mEkN58sxl5cSCUi7vPMSyNZpPGyOu/preview",
+        "gdrivePath": "Yomi no Tsugai/Yomi no Tsugai - Episodio 18.mp4",
+        "filename": "Yomi no Tsugai - Episodio 18.mp4",
+        "sizeMB": "316.59",
+        "uploadedAt": "2026-09-08T00:56:53.712Z"
+      },
+      "ep-21": {
+        "fileId": "1CNoKPi2ksmHyMBYKCVxAVltI27LGWeWz",
+        "streamUrl": "https://drive.google.com/file/d/1CNoKPi2ksmHyMBYKCVxAVltI27LGWeWz/preview",
+        "gdrivePath": "Yomi no Tsugai/Yomi no Tsugai - Episodio 21.mp4",
+        "filename": "Yomi no Tsugai - Episodio 21.mp4",
+        "sizeMB": "313.30",
+        "uploadedAt": "2026-09-08T01:02:54.892Z"
       }
     }
   },
@@ -12765,7 +12805,16 @@
   },
   "tioanime-steel-ball-run-jojo-no-kimyou-na-bouken": {
     "title": "Steel Ball Run: JoJo no Kimyou na Bouken",
-    "episodes": {}
+    "episodes": {
+      "ep-1": {
+        "fileId": "1t_3pTF-nMBUixlf7kAvKqxD85ZzMUUj1",
+        "streamUrl": "https://drive.google.com/file/d/1t_3pTF-nMBUixlf7kAvKqxD85ZzMUUj1/preview",
+        "gdrivePath": "Steel Ball Run_ JoJo no Kimyou na Bouken/Steel Ball Run: JoJo no Kimyou na Bouken - Episodio 01.mp4",
+        "filename": "Steel Ball Run: JoJo no Kimyou na Bouken - Episodio 01.mp4",
+        "sizeMB": "1194.28",
+        "uploadedAt": "2026-09-08T00:12:52.058Z"
+      }
+    }
   },
   "tioanime-yoroi-shin-den-samurai-troopers": {
     "title": "Yoroi Shin Den Samurai Troopers",
