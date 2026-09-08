@@ -12830,7 +12830,168 @@
   },
   "tioanime-dragon-ball-daima": {
     "title": "Dragon Ball Daima",
-    "episodes": {}
+    "episodes": {
+      "ep-1": {
+        "fileId": "15L4WQbzDIOFEd_o_GUfCAiLprcg5MaO8",
+        "streamUrl": "https://drive.google.com/file/d/15L4WQbzDIOFEd_o_GUfCAiLprcg5MaO8/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 01.mp4",
+        "filename": "Dragon Ball Daima - Episodio 01.mp4",
+        "sizeMB": "592.15",
+        "uploadedAt": "2026-09-08T02:16:46.519Z"
+      },
+      "ep-2": {
+        "fileId": "1GTZfCTK09Gz4_E1DqMlwmZVxnhnNtgmg",
+        "streamUrl": "https://drive.google.com/file/d/1GTZfCTK09Gz4_E1DqMlwmZVxnhnNtgmg/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 02.mp4",
+        "filename": "Dragon Ball Daima - Episodio 02.mp4",
+        "sizeMB": "321.33",
+        "uploadedAt": "2026-09-08T02:21:50.278Z"
+      },
+      "ep-3": {
+        "fileId": "1ImWXiITQ1AjpZHldmJnGlWOn_J9uf4z6",
+        "streamUrl": "https://drive.google.com/file/d/1ImWXiITQ1AjpZHldmJnGlWOn_J9uf4z6/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 03.mp4",
+        "filename": "Dragon Ball Daima - Episodio 03.mp4",
+        "sizeMB": "363.61",
+        "uploadedAt": "2026-09-08T02:45:05.366Z"
+      },
+      "ep-4": {
+        "fileId": "1BCjGXUUdkGsG4BP8TAbnP4NhG_ohle8A",
+        "streamUrl": "https://drive.google.com/file/d/1BCjGXUUdkGsG4BP8TAbnP4NhG_ohle8A/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 04.mp4",
+        "filename": "Dragon Ball Daima - Episodio 04.mp4",
+        "sizeMB": "462.48",
+        "uploadedAt": "2026-09-08T02:51:48.131Z"
+      },
+      "ep-5": {
+        "fileId": "1xz6b2YtnJs1rCBlKqxBqk5KWp_fxXBgX",
+        "streamUrl": "https://drive.google.com/file/d/1xz6b2YtnJs1rCBlKqxBqk5KWp_fxXBgX/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 05.mp4",
+        "filename": "Dragon Ball Daima - Episodio 05.mp4",
+        "sizeMB": "416.33",
+        "uploadedAt": "2026-09-08T02:58:46.794Z"
+      },
+      "ep-6": {
+        "fileId": "1GBqnADM4S0vjGoeUs0OysVy_9Pn8JyaE",
+        "streamUrl": "https://drive.google.com/file/d/1GBqnADM4S0vjGoeUs0OysVy_9Pn8JyaE/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 06.mp4",
+        "filename": "Dragon Ball Daima - Episodio 06.mp4",
+        "sizeMB": "384.77",
+        "uploadedAt": "2026-09-08T03:05:09.565Z"
+      },
+      "ep-7": {
+        "fileId": "1vm8z61etsIoR-lABA6tU7IQ2G0v5-HCd",
+        "streamUrl": "https://drive.google.com/file/d/1vm8z61etsIoR-lABA6tU7IQ2G0v5-HCd/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 07.mp4",
+        "filename": "Dragon Ball Daima - Episodio 07.mp4",
+        "sizeMB": "358.49",
+        "uploadedAt": "2026-09-08T03:30:08.381Z"
+      },
+      "ep-8": {
+        "fileId": "19YlqjSSA6l_mc_dY0MH3icGjllJXTzwp",
+        "streamUrl": "https://drive.google.com/file/d/19YlqjSSA6l_mc_dY0MH3icGjllJXTzwp/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 08.mp4",
+        "filename": "Dragon Ball Daima - Episodio 08.mp4",
+        "sizeMB": "470.94",
+        "uploadedAt": "2026-09-08T03:37:14.562Z"
+      },
+      "ep-9": {
+        "fileId": "1JwqZxq7gUaMw6e7iDQMEVAEqXa9lJidL",
+        "streamUrl": "https://drive.google.com/file/d/1JwqZxq7gUaMw6e7iDQMEVAEqXa9lJidL/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 09.mp4",
+        "filename": "Dragon Ball Daima - Episodio 09.mp4",
+        "sizeMB": "365.70",
+        "uploadedAt": "2026-09-08T04:03:49.489Z"
+      },
+      "ep-10": {
+        "fileId": "1HSwxxBC7RhtJGGbHCwyc56__FKSLyMQ4",
+        "streamUrl": "https://drive.google.com/file/d/1HSwxxBC7RhtJGGbHCwyc56__FKSLyMQ4/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 10.mp4",
+        "filename": "Dragon Ball Daima - Episodio 10.mp4",
+        "sizeMB": "423.89",
+        "uploadedAt": "2026-09-08T04:09:42.540Z"
+      },
+      "ep-11": {
+        "fileId": "1ngw6iMtTNmpMG6xUYYFrPmW8eiHPbDuo",
+        "streamUrl": "https://drive.google.com/file/d/1ngw6iMtTNmpMG6xUYYFrPmW8eiHPbDuo/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 11.mp4",
+        "filename": "Dragon Ball Daima - Episodio 11.mp4",
+        "sizeMB": "408.08",
+        "uploadedAt": "2026-09-08T04:35:07.828Z"
+      },
+      "ep-12": {
+        "fileId": "1CtFFZot7PjsDG4DlF74mS_u6AndYNRe_",
+        "streamUrl": "https://drive.google.com/file/d/1CtFFZot7PjsDG4DlF74mS_u6AndYNRe_/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 12.mp4",
+        "filename": "Dragon Ball Daima - Episodio 12.mp4",
+        "sizeMB": "506.97",
+        "uploadedAt": "2026-09-08T04:48:07.860Z"
+      },
+      "ep-13": {
+        "fileId": "1THqWa0ioiZFY6nIH0eOVQpsW4LqK7deH",
+        "streamUrl": "https://drive.google.com/file/d/1THqWa0ioiZFY6nIH0eOVQpsW4LqK7deH/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 13.mp4",
+        "filename": "Dragon Ball Daima - Episodio 13.mp4",
+        "sizeMB": "492.62",
+        "uploadedAt": "2026-09-08T04:55:59.745Z"
+      },
+      "ep-14": {
+        "fileId": "1ZLfBoOQp7itHPE7KKiusM5sEhJwS74RY",
+        "streamUrl": "https://drive.google.com/file/d/1ZLfBoOQp7itHPE7KKiusM5sEhJwS74RY/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 14.mp4",
+        "filename": "Dragon Ball Daima - Episodio 14.mp4",
+        "sizeMB": "372.79",
+        "uploadedAt": "2026-09-08T05:02:01.372Z"
+      },
+      "ep-15": {
+        "fileId": "1nfz6mqC4gb9xWfTgYhPcEUhWsSPlSvtx",
+        "streamUrl": "https://drive.google.com/file/d/1nfz6mqC4gb9xWfTgYhPcEUhWsSPlSvtx/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 15.mp4",
+        "filename": "Dragon Ball Daima - Episodio 15.mp4",
+        "sizeMB": "538.56",
+        "uploadedAt": "2026-09-08T05:32:12.915Z"
+      },
+      "ep-16": {
+        "fileId": "19O2bzOVHBA3_9a6HUrCKBOgnZwjzdXeC",
+        "streamUrl": "https://drive.google.com/file/d/19O2bzOVHBA3_9a6HUrCKBOgnZwjzdXeC/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 16.mp4",
+        "filename": "Dragon Ball Daima - Episodio 16.mp4",
+        "sizeMB": "355.13",
+        "uploadedAt": "2026-09-08T05:43:04.690Z"
+      },
+      "ep-17": {
+        "fileId": "1nUh8p9O-jHkgHP7mHO6FvkMVJkqgrj6g",
+        "streamUrl": "https://drive.google.com/file/d/1nUh8p9O-jHkgHP7mHO6FvkMVJkqgrj6g/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 17.mp4",
+        "filename": "Dragon Ball Daima - Episodio 17.mp4",
+        "sizeMB": "502.18",
+        "uploadedAt": "2026-09-08T05:50:13.454Z"
+      },
+      "ep-18": {
+        "fileId": "1vpYI2933dm___48GK2W_1ixEn0pPiHCe",
+        "streamUrl": "https://drive.google.com/file/d/1vpYI2933dm___48GK2W_1ixEn0pPiHCe/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 18.mp4",
+        "filename": "Dragon Ball Daima - Episodio 18.mp4",
+        "sizeMB": "685.24",
+        "uploadedAt": "2026-09-08T06:01:56.528Z"
+      },
+      "ep-19": {
+        "fileId": "1Xx0LfqnhKVtzjwuRtmDFL0d_1S-McXaj",
+        "streamUrl": "https://drive.google.com/file/d/1Xx0LfqnhKVtzjwuRtmDFL0d_1S-McXaj/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 19.mp4",
+        "filename": "Dragon Ball Daima - Episodio 19.mp4",
+        "sizeMB": "525.39",
+        "uploadedAt": "2026-09-08T06:09:00.349Z"
+      },
+      "ep-20": {
+        "fileId": "1wdcJAegHS-MQF4TOlPjE-u088YY73vsm",
+        "streamUrl": "https://drive.google.com/file/d/1wdcJAegHS-MQF4TOlPjE-u088YY73vsm/preview",
+        "gdrivePath": "Dragon Ball Daima/Dragon Ball Daima - Episodio 20.mp4",
+        "filename": "Dragon Ball Daima - Episodio 20.mp4",
+        "sizeMB": "594.53",
+        "uploadedAt": "2026-09-08T06:17:05.103Z"
+      }
+    }
   },
   "tioanime-yarinaoshi-reijou-wa-ryuutei-heika-wo-kouryakuchuu": {
     "title": "Yarinaoshi Reijou wa Ryuutei Heika wo Kouryakuchuu",
@@ -13159,7 +13320,104 @@
   },
   "tioanime-strike-the-blood-iv": {
     "title": "Strike the Blood IV",
-    "episodes": {}
+    "episodes": {
+      "ep-1": {
+        "fileId": "1ZfHXRxjfDMVg1lhPLZ7yQPq3dw1sDsuI",
+        "streamUrl": "https://drive.google.com/file/d/1ZfHXRxjfDMVg1lhPLZ7yQPq3dw1sDsuI/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 01.mp4",
+        "filename": "Strike the Blood IV - Episodio 01.mp4",
+        "sizeMB": "168.89",
+        "uploadedAt": "2026-09-08T01:27:56.566Z"
+      },
+      "ep-2": {
+        "fileId": "1pV3QpJnooEX99c6FI4eYrV7pPl7bQbwD",
+        "streamUrl": "https://drive.google.com/file/d/1pV3QpJnooEX99c6FI4eYrV7pPl7bQbwD/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 02.mp4",
+        "filename": "Strike the Blood IV - Episodio 02.mp4",
+        "sizeMB": "155.30",
+        "uploadedAt": "2026-09-08T01:31:45.053Z"
+      },
+      "ep-3": {
+        "fileId": "1Bd2B1BVnqaLnjQd0VtHRSGTVm3JsfOom",
+        "streamUrl": "https://drive.google.com/file/d/1Bd2B1BVnqaLnjQd0VtHRSGTVm3JsfOom/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 03.mp4",
+        "filename": "Strike the Blood IV - Episodio 03.mp4",
+        "sizeMB": "163.22",
+        "uploadedAt": "2026-09-08T01:35:09.151Z"
+      },
+      "ep-4": {
+        "fileId": "1OoGuM6pI3UAmE4Vmgpxq9t_-qV-JNZj-",
+        "streamUrl": "https://drive.google.com/file/d/1OoGuM6pI3UAmE4Vmgpxq9t_-qV-JNZj-/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 04.mp4",
+        "filename": "Strike the Blood IV - Episodio 04.mp4",
+        "sizeMB": "142.95",
+        "uploadedAt": "2026-09-08T01:37:50.231Z"
+      },
+      "ep-5": {
+        "fileId": "1M8h7y5GTgW2JofTFj0VngyFRS-N-H1_x",
+        "streamUrl": "https://drive.google.com/file/d/1M8h7y5GTgW2JofTFj0VngyFRS-N-H1_x/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 05.mp4",
+        "filename": "Strike the Blood IV - Episodio 05.mp4",
+        "sizeMB": "167.26",
+        "uploadedAt": "2026-09-08T01:40:49.489Z"
+      },
+      "ep-6": {
+        "fileId": "1mOmWn4ECYKCZUHy2ULk9d4l4TUnRGb5u",
+        "streamUrl": "https://drive.google.com/file/d/1mOmWn4ECYKCZUHy2ULk9d4l4TUnRGb5u/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 06.mp4",
+        "filename": "Strike the Blood IV - Episodio 06.mp4",
+        "sizeMB": "181.52",
+        "uploadedAt": "2026-09-08T01:44:09.510Z"
+      },
+      "ep-7": {
+        "fileId": "1DD-l6HUIN4WXbxn9kYLFDICB6Azdpgwt",
+        "streamUrl": "https://drive.google.com/file/d/1DD-l6HUIN4WXbxn9kYLFDICB6Azdpgwt/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 07.mp4",
+        "filename": "Strike the Blood IV - Episodio 07.mp4",
+        "sizeMB": "162.35",
+        "uploadedAt": "2026-09-08T01:47:04.663Z"
+      },
+      "ep-8": {
+        "fileId": "1rXhWJIxNsp1jhI5lmEvLytx0Dc369BJJ",
+        "streamUrl": "https://drive.google.com/file/d/1rXhWJIxNsp1jhI5lmEvLytx0Dc369BJJ/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 08.mp4",
+        "filename": "Strike the Blood IV - Episodio 08.mp4",
+        "sizeMB": "138.56",
+        "uploadedAt": "2026-09-08T01:49:52.743Z"
+      },
+      "ep-9": {
+        "fileId": "1ZYZ3VpfynAHbIR0Pk85bRm93I6JMHU49",
+        "streamUrl": "https://drive.google.com/file/d/1ZYZ3VpfynAHbIR0Pk85bRm93I6JMHU49/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 09.mp4",
+        "filename": "Strike the Blood IV - Episodio 09.mp4",
+        "sizeMB": "175.20",
+        "uploadedAt": "2026-09-08T01:53:02.740Z"
+      },
+      "ep-10": {
+        "fileId": "1j2AVBXzP4Q4VxXi3KZglKECTyo3gVkvO",
+        "streamUrl": "https://drive.google.com/file/d/1j2AVBXzP4Q4VxXi3KZglKECTyo3gVkvO/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 10.mp4",
+        "filename": "Strike the Blood IV - Episodio 10.mp4",
+        "sizeMB": "151.54",
+        "uploadedAt": "2026-09-08T01:56:46.612Z"
+      },
+      "ep-11": {
+        "fileId": "1xAbNKd3m1oW-i5vuApBpeytNG9sjIxpt",
+        "streamUrl": "https://drive.google.com/file/d/1xAbNKd3m1oW-i5vuApBpeytNG9sjIxpt/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 11.mp4",
+        "filename": "Strike the Blood IV - Episodio 11.mp4",
+        "sizeMB": "139.13",
+        "uploadedAt": "2026-09-08T02:00:05.139Z"
+      },
+      "ep-12": {
+        "fileId": "1JsyH-eWtSkmJXzBd81PJqu93abbvVC55",
+        "streamUrl": "https://drive.google.com/file/d/1JsyH-eWtSkmJXzBd81PJqu93abbvVC55/preview",
+        "gdrivePath": "Strike the Blood IV/Strike the Blood IV - Episodio 12.mp4",
+        "filename": "Strike the Blood IV - Episodio 12.mp4",
+        "sizeMB": "170.88",
+        "uploadedAt": "2026-09-08T02:04:06.715Z"
+      }
+    }
   },
   "tioanime-dragon-ball-super-latino": {
     "title": "Dragon Ball Super Latino",
