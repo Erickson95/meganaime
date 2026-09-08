@@ -106,11 +106,18 @@ export function getProxyImageUrl(url: string | undefined, title: string = "Anime
     return getAnimePlaceholder(title, isBanner);
   }
 
-  // Direct HTTPS CDN URLs (AniList, Cloudinary, MyAnimeList, Imgur, Supabase) load 100x faster directly without server proxy!
+  // Direct HTTPS CDN URLs (AniList, TioAnime, Cloudinary, MyAnimeList, Imgur, Supabase, R2) load 100x faster directly without server proxy!
   if (
     trimmedUrl.startsWith("https://s4.anilist.co/") ||
+    trimmedUrl.startsWith("https://tioanime.com/") ||
+    trimmedUrl.startsWith("http://tioanime.com/") ||
     trimmedUrl.startsWith("https://cdn.myanimelist.net/") ||
+    trimmedUrl.startsWith("https://artworks.thetvdb.com/") ||
+    trimmedUrl.startsWith("https://images.unsplash.com/") ||
+    trimmedUrl.startsWith("https://media.kitsu.io/") ||
+    trimmedUrl.includes("r2.dev") ||
     trimmedUrl.startsWith("https://images.weserv.nl/") ||
+    trimmedUrl.startsWith("https://wsrv.nl/") ||
     trimmedUrl.startsWith("https://res.cloudinary.com/") ||
     trimmedUrl.startsWith("https://i.imgur.com/") ||
     (isNativePlatform() && (trimmedUrl.startsWith("http://") || trimmedUrl.startsWith("https://")))
@@ -166,15 +173,8 @@ export async function recoverCoverImageInHotPath(
     if (res.ok) {
       const data = await res.json();
       if (data.coverUrl) {
-        // Safe base64 encoding with Unicode support to apply proxying on top of the resolved URL
-        const trimmed = data.coverUrl.trim();
-        let encoded = trimmed;
-        try {
-          encoded = btoa(unescape(encodeURIComponent(trimmed)));
-          imgElement.src = getApiUrl(`/api/image-proxy?url=${encoded}&encode=base64&title=${encodeURIComponent(title)}`);
-        } catch (err) {
-          imgElement.src = data.coverUrl;
-        }
+        // Set the recovered cover using fast whitelist / proxy handler
+        imgElement.src = getProxyImageUrl(trimmed, title);
 
 
         // NO-REGRESSION / SYNC FIX: Persist resolved cover back into the user's continue watching local storage cache

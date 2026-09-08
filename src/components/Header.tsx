@@ -177,7 +177,8 @@ export default function Header({
 
         {/* User Account Controls */}
         <div className="flex items-center space-x-4">
-          {currentUser?.isAdmin && currentUser?.email?.toLowerCase().trim() === "baezcabrera.j.r@gmail.com" && (
+          {((currentUser?.isAdmin && currentUser?.email?.toLowerCase().trim() === "baezcabrera.j.r@gmail.com") ||
+            (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))) && (
             <button
               onClick={() => setActiveTab("admin")}
               className={`hidden md:flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
@@ -376,7 +377,8 @@ export default function Header({
           <Download className="h-5 w-5 mb-0.5" />
           <span>Descargas</span>
         </button>
-        {currentUser?.isAdmin && currentUser?.email?.toLowerCase().trim() === "baezcabrera.j.r@gmail.com" && (
+        {((currentUser?.isAdmin && currentUser?.email?.toLowerCase().trim() === "baezcabrera.j.r@gmail.com") ||
+          (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))) && (
           <button
             onClick={() => setActiveTab("admin")}
             className={`flex flex-col items-center py-1.5 px-3 transition-colors ${

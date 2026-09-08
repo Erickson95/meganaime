@@ -1,0 +1,604 @@
+[
+  {
+    "key": "tioanime-tenmaku-no-jaadugar",
+    "slug": "tenmaku-no-jaadugar",
+    "uploaded": 10,
+    "totalAiring": 10,
+    "jkAvailable": 11
+  },
+  {
+    "key": "tioanime-nige-jouzu-no-wakagimi-2nd-season",
+    "slug": "nige-jouzu-no-wakagimi-2nd-season",
+    "uploaded": 7,
+    "totalAiring": 7,
+    "jkAvailable": 8
+  },
+  {
+    "key": "tioanime-futsutsuka-na-akujo-dewa-gozaimasu-ga-suuguu-chouso-torikae-den",
+    "slug": "futsutsuka-na-akujo-dewa-gozaimasu-ga-suuguu-chouso-torikae-den",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-hanaorisan-wa-tensei-shitemo-kenka-ga-shitai",
+    "slug": "hanaorisan-wa-tensei-shitemo-kenka-ga-shitai",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-super-no-ura-de-yani-suu-futari",
+    "slug": "super-no-ura-de-yani-suu-futari",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 21
+  },
+  {
+    "key": "tioanime-mebius-dust",
+    "slug": "mebius-dust",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-ibitte-konai-gibo-to-gishi",
+    "slug": "ibitte-konai-gibo-to-gishi",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-youjo-senki-ii",
+    "slug": "youjo-senki-ii",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-otome-game-sekai-wa-mob-ni-kibishii-sekai-desu-2",
+    "slug": "otome-game-sekai-wa-mob-ni-kibishii-sekai-desu-2",
+    "uploaded": 10,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-clevatess-ii-majuu-no-ou-to-itsuwari-no-yuusha-denshou",
+    "slug": "clevatess-ii-majuu-no-ou-to-itsuwari-no-yuusha-denshou",
+    "uploaded": 11,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-thunder-3",
+    "slug": "thunder-3",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-dogulwang",
+    "slug": "dogulwang",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-katainaka-no-ossan-kensei-ni-naru-ii",
+    "slug": "katainaka-no-ossan-kensei-ni-naru-ii",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-kimi-ga-shinu-made-koi-wo-shitai",
+    "slug": "kimi-ga-shinu-made-koi-wo-shitai",
+    "uploaded": 11,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-tefuda-ga-oome-no-victoria",
+    "slug": "tefuda-ga-oome-no-victoria",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-sora-wa-akai-kawa-no-hotori",
+    "slug": "sora-wa-akai-kawa-no-hotori",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-taiari-deshita-ojousama-wa-kakutou-game-nante-shinai",
+    "slug": "taiari-deshita-ojousama-wa-kakutou-game-nante-shinai",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-saikyou-degarashi-ouji-no-anyaku-teii-arasoi",
+    "slug": "saikyou-degarashi-ouji-no-anyaku-teii-arasoi",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-tenkosaki",
+    "slug": "tenkosaki",
+    "uploaded": 12,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-buchigire-reijou-wa-houfuku-wo-chikaimashita",
+    "slug": "buchigire-reijou-wa-houfuku-wo-chikaimashita",
+    "uploaded": 8,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-gaikotsu-kishisama-tadaima-isekai-e-odekakechuu-ii",
+    "slug": "gaikotsu-kishisama-tadaima-isekai-e-odekakechuu-ii",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-toumei-na-yoru-ni-kakeru-kimi-to-me-ni-mienai-koi-wo-shita",
+    "slug": "toumei-na-yoru-ni-kakeru-kimi-to-me-ni-mienai-koi-wo-shita",
+    "uploaded": 11,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-grand-blue-season-3",
+    "slug": "grand-blue-season-3",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-suterare-seijo-no-isekai-gohan-tabi-kakure-skill-de-camping-car-wo-shoukan-shimashita",
+    "slug": "suterare-seijo-no-isekai-gohan-tabi-kakure-skill-de-camping-car-wo-shoukan-shimashita",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-sekai-saikyou-no-kouei-meikyuukoku-no-shinjin-tansakusha",
+    "slug": "sekai-saikyou-no-kouei-meikyuukoku-no-shinjin-tansakusha",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-nijusseiki-denki-mokuroku-eureka-evrika",
+    "slug": "nijusseiki-denki-mokuroku-eureka-evrika",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-mushoku-tensei-iii-isekai-ittara-honki-dasu",
+    "slug": "mushoku-tensei-iii-isekai-ittara-honki-dasu",
+    "uploaded": 10,
+    "totalAiring": 10,
+    "jkAvailable": 11
+  },
+  {
+    "key": "tioanime-tetsunabe-no-jan",
+    "slug": "tetsunabe-no-jan",
+    "uploaded": 0,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-lets-go-kaikigumi",
+    "slug": "lets-go-kaikigumi",
+    "uploaded": 10,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-azur-lane-bisoku-zenshin-ni",
+    "slug": "azur-lane-bisoku-zenshin-ni",
+    "uploaded": 12,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-sayonara-lara",
+    "slug": "sayonara-lara",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-seihantai-na-kimi-to-boku-2nd-season",
+    "slug": "seihantai-na-kimi-to-boku-2nd-season",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-oni-no-hanayome",
+    "slug": "oni-no-hanayome",
+    "uploaded": 10,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-iwamotosenpai-no-suisen",
+    "slug": "iwamotosenpai-no-suisen",
+    "uploaded": 11,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-kimi-wo-aisuru-ki-wa-nai-to-itta-jiki-koushakusama-ga-nazeka-dekiai-shitekimasu",
+    "slug": "kimi-wo-aisuru-ki-wa-nai-to-itta-jiki-koushakusama-ga-nazeka-dekiai-shitekimasu",
+    "uploaded": 8,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-mahou-shoujo-lyrical-nanoha-exceeds-gun-blaze-vengeance",
+    "slug": "mahou-shoujo-lyrical-nanoha-exceeds-gun-blaze-vengeance",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-kabushikigaisha-magilumiere-2nd-season",
+    "slug": "kabushikigaisha-magilumiere-2nd-season",
+    "uploaded": 7,
+    "totalAiring": 8,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-black-torch",
+    "slug": "black-torch",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-grow-up-show-himawari-no-circusdan",
+    "slug": "grow-up-show-himawari-no-circusdan",
+    "uploaded": 3,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-saijo-no-osewa",
+    "slug": "saijo-no-osewa",
+    "uploaded": 8,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-uchi-no-otoutodomo-ga-sumimasen",
+    "slug": "uchi-no-otoutodomo-ga-sumimasen",
+    "uploaded": 4,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-koko-wa-ore-ni-makasete-saki-ni-ike-to-itte-kara-10nen-ga-tattara-densetsu-ni-natteita",
+    "slug": "koko-wa-ore-ni-makasete-saki-ni-ike-to-itte-kara-10nen-ga-tattara-densetsu-ni-natteita",
+    "uploaded": 11,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-kore-kaite-shine",
+    "slug": "kore-kaite-shine",
+    "uploaded": 8,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-ryoumin-0nin-start-no-henkyou-ryoushusama",
+    "slug": "ryoumin-0nin-start-no-henkyou-ryoushusama",
+    "uploaded": 0,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-hell-mode-yarikomizuki-no-gamer-wa-hai-settei-no-isekai-de-musou-suru-2nd-season",
+    "slug": "hell-mode-yarikomizuki-no-gamer-wa-hai-settei-no-isekai-de-musou-suru-2nd-season",
+    "uploaded": 0,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-bang-dream-yumemita",
+    "slug": "bang-dream-yumemita",
+    "uploaded": 0,
+    "totalAiring": 11,
+    "jkAvailable": 12
+  },
+  {
+    "key": "tioanime-otome-kaijuu-carameliser",
+    "slug": "otome-kaijuu-carameliser",
+    "uploaded": 0,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-reiwa-no-darasan",
+    "slug": "reiwa-no-darasan",
+    "uploaded": 0,
+    "totalAiring": 9,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-yani-neko",
+    "slug": "yani-neko",
+    "uploaded": 1,
+    "totalAiring": 8,
+    "jkAvailable": 9
+  },
+  {
+    "key": "tioanime-bungou-stray-dogs-wan-2",
+    "slug": "bungou-stray-dogs-wan-2",
+    "uploaded": 9,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-tsuihou-sareta-tensei-juukishi-wa-game-chishiki-de-musou-suru",
+    "slug": "tsuihou-sareta-tensei-juukishi-wa-game-chishiki-de-musou-suru",
+    "uploaded": 10,
+    "totalAiring": 9,
+    "jkAvailable": 10
+  },
+  {
+    "key": "tioanime-hanazakari-no-kimitachi-e-2nd-season",
+    "slug": "hanazakari-no-kimitachi-e-2nd-season",
+    "uploaded": 0,
+    "totalAiring": 10,
+    "jkAvailable": 11
+  },
+  {
+    "key": "tioanime-lv999-no-murabito",
+    "slug": "lv999-no-murabito",
+    "uploaded": 11,
+    "totalAiring": 10,
+    "jkAvailable": 11
+  },
+  {
+    "key": "tioanime-mujikaku-seijo-wa-kyou-mo-muishiki-ni-chikara-wo-tare-nagasu",
+    "slug": "mujikaku-seijo-wa-kyou-mo-muishiki-ni-chikara-wo-tare-nagasu",
+    "uploaded": 0,
+    "totalAiring": 10,
+    "jkAvailable": 11
+  },
+  {
+    "key": "tioanime-63347",
+    "slug": "63347",
+    "uploaded": 0,
+    "totalAiring": 10,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-neko-to-ryuu",
+    "slug": "neko-to-ryuu",
+    "uploaded": 0,
+    "totalAiring": 10,
+    "jkAvailable": 11
+  },
+  {
+    "key": "tioanime-rakudai-kenja-no-gakuin-musou-nidome-no-tensei-srank-cheat-majutsushi-boukenroku",
+    "slug": "rakudai-kenja-no-gakuin-musou-nidome-no-tensei-srank-cheat-majutsushi-boukenroku",
+    "uploaded": 7,
+    "totalAiring": 10,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-heroine-seijo-iie-all-works-maid-desu-hokori",
+    "slug": "heroine-seijo-iie-all-works-maid-desu-hokori",
+    "uploaded": 0,
+    "totalAiring": 10,
+    "jkAvailable": 11
+  },
+  {
+    "key": "tioanime-kuroneko-to-majo-no-kyoushitsu",
+    "slug": "kuroneko-to-majo-no-kyoushitsu",
+    "uploaded": 0,
+    "totalAiring": 21,
+    "jkAvailable": 22
+  },
+  {
+    "key": "tioanime-kami-no-shizuku",
+    "slug": "kami-no-shizuku",
+    "uploaded": 0,
+    "totalAiring": 21,
+    "jkAvailable": 22
+  },
+  {
+    "key": "tioanime-rezero-kara-hajimeru-isekai-seikatsu-4th-season",
+    "slug": "rezero-kara-hajimeru-isekai-seikatsu-4th-season",
+    "uploaded": 2,
+    "totalAiring": 14,
+    "jkAvailable": 15
+  },
+  {
+    "key": "tioanime-liar-game",
+    "slug": "liar-game",
+    "uploaded": 0,
+    "totalAiring": 22,
+    "jkAvailable": 23
+  },
+  {
+    "key": "tioanime-honzuki-no-gekokujou-shisho-ni-naru-tame-ni-wa-shudan-wo-erandeiraremasen-4th-season",
+    "slug": "honzuki-no-gekokujou-shisho-ni-naru-tame-ni-wa-shudan-wo-erandeiraremasen-4th-season",
+    "uploaded": 0,
+    "totalAiring": 19,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-mairimashita-irumakun-4th-season",
+    "slug": "mairimashita-irumakun-4th-season",
+    "uploaded": 0,
+    "totalAiring": 20,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-yomi-no-tsugai",
+    "slug": "yomi-no-tsugai",
+    "uploaded": 21,
+    "totalAiring": 21,
+    "jkAvailable": 22
+  },
+  {
+    "key": "tioanime-mao",
+    "slug": "mao",
+    "uploaded": 0,
+    "totalAiring": 22,
+    "jkAvailable": 23
+  },
+  {
+    "key": "tioanime-tensei-shitara-slime-datta-ken-4th-season",
+    "slug": "tensei-shitara-slime-datta-ken-4th-season",
+    "uploaded": 5,
+    "totalAiring": 20,
+    "jkAvailable": 21
+  },
+  {
+    "key": "tioanime-steel-ball-run-jojo-no-kimyou-na-bouken",
+    "slug": "steel-ball-run-jojo-no-kimyou-na-bouken",
+    "uploaded": 1,
+    "totalAiring": 1,
+    "jkAvailable": 1
+  },
+  {
+    "key": "tioanime-yoroi-shin-den-samurai-troopers",
+    "slug": "yoroi-shin-den-samurai-troopers",
+    "uploaded": 0,
+    "totalAiring": 21,
+    "jkAvailable": 12
+  },
+  {
+    "key": "tioanime-digimon-beatbreak",
+    "slug": "digimon-beatbreak",
+    "uploaded": 0,
+    "totalAiring": 45,
+    "jkAvailable": 46
+  },
+  {
+    "key": "tioanime-grand-blue-season-2",
+    "slug": "grand-blue-season-2",
+    "uploaded": 12,
+    "totalAiring": 12,
+    "jkAvailable": 12
+  },
+  {
+    "key": "tioanime-yofukashi-no-uta-season-2",
+    "slug": "yofukashi-no-uta-season-2",
+    "uploaded": 12,
+    "totalAiring": 12,
+    "jkAvailable": 12
+  },
+  {
+    "key": "tioanime-dragon-ball-daima",
+    "slug": "dragon-ball-daima",
+    "uploaded": 20,
+    "totalAiring": 20,
+    "jkAvailable": 20
+  },
+  {
+    "key": "tioanime-yarinaoshi-reijou-wa-ryuutei-heika-wo-kouryakuchuu",
+    "slug": "yarinaoshi-reijou-wa-ryuutei-heika-wo-kouryakuchuu",
+    "uploaded": 12,
+    "totalAiring": 12,
+    "jkAvailable": 12
+  },
+  {
+    "key": "tioanime-ranma-12-2024",
+    "slug": "ranma-12-2024",
+    "uploaded": 0,
+    "totalAiring": 12,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-atri-my-dear-moments",
+    "slug": "atri-my-dear-moments",
+    "uploaded": 13,
+    "totalAiring": 13,
+    "jkAvailable": 13
+  },
+  {
+    "key": "tioanime-kimi-no-koto-ga-daidaidaidaidaisuki-na-100nin-no-kanojo",
+    "slug": "kimi-no-koto-ga-daidaidaidaidaisuki-na-100nin-no-kanojo",
+    "uploaded": 0,
+    "totalAiring": 33,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-bleach-sennen-kessenhen",
+    "slug": "bleach-sennen-kessenhen",
+    "uploaded": 37,
+    "totalAiring": 47,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-genjitsu-shugi-yuusha-no-oukoku-saikenki",
+    "slug": "genjitsu-shugi-yuusha-no-oukoku-saikenki",
+    "uploaded": 0,
+    "totalAiring": 26,
+    "jkAvailable": 13
+  },
+  {
+    "key": "tioanime-vanitas-no-carte",
+    "slug": "vanitas-no-carte",
+    "uploaded": 0,
+    "totalAiring": 24,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-strike-the-blood-iv",
+    "slug": "strike-the-blood-iv",
+    "uploaded": 12,
+    "totalAiring": 12,
+    "jkAvailable": 12
+  },
+  {
+    "key": "tioanime-dragon-ball-super-latino",
+    "slug": "dragon-ball-super-latino",
+    "uploaded": 0,
+    "totalAiring": 67,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-ghost-in-the-shell-2015",
+    "slug": "ghost-in-the-shell-2015",
+    "uploaded": 1,
+    "totalAiring": 1,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-one-piece-tv",
+    "slug": "one-piece-tv",
+    "uploaded": 1176,
+    "totalAiring": 1176,
+    "jkAvailable": 0
+  },
+  {
+    "key": "tioanime-detective-conan",
+    "slug": "detective-conan",
+    "uploaded": 0,
+    "totalAiring": 1217,
+    "jkAvailable": 50
+  },
+  {
+    "key": "tioanime-furusato-meguri",
+    "slug": "furusato-meguri",
+    "uploaded": 6,
+    "totalAiring": 6,
+    "jkAvailable": 0
+  }
+]

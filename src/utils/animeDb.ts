@@ -23,7 +23,7 @@ export function getAvailableEpisodesCountForAiring(anime: Anime): number {
     return Math.max(10, anime.airedEpisodesCount || 0, anime.episodesCount || 0);
   }
   if (normId.includes("one-piece") || normTitle.includes("one piece")) return Math.max(1176, anime.airedEpisodesCount || 0);
-  if (normId.includes("bleach-sennen-kessen") || normId.includes("thousand-year")) return Math.max(46, anime.airedEpisodesCount || 0);
+  if (normId.includes("bleach-sennen-kessen") || normId.includes("thousand-year")) return Math.max(47, anime.airedEpisodesCount || 0);
   if (normId.includes("bleach-tv") || (normTitle === "bleach" && anime.status === "Finalizado")) return 366;
   if (normId.includes("tensei-shitara-slime") || normId.includes("reincarnated-as-a-slime") || normTitle.includes("slime")) return Math.max(20, anime.airedEpisodesCount || 0);
   if (normId.includes("the-elusive-samurai") || normId.includes("nige-jouzu") || normTitle.includes("elusive samurai") || normTitle.includes("nige jouzu")) return Math.max(7, anime.airedEpisodesCount || 0);
@@ -62,13 +62,29 @@ export function generateEpisodesForAnime(anime: Anime): Episode[] {
     if (existing && existing.videoUrl) {
       return existing;
     }
+
+    let epTitle = isMovie
+      ? anime.title
+      : isOVA
+        ? `${anime.title} - OVA ${num}`
+        : `${anime.title} - Episodio ${num}`;
+
+    if (anime.id.includes("bleach-sennen-kessen") || (anime.title || "").toLowerCase().includes("thousand-year")) {
+      if (num <= 13) {
+        epTitle = `Episodio ${num} (Parte 1: The Blood Warfare)`;
+      } else if (num <= 26) {
+        epTitle = `Episodio ${num} (Parte 2: The Separation - Ep. ${num - 13})`;
+      } else if (num <= 39) {
+        epTitle = `Episodio ${num} (Parte 3: The Conflict - Ep. ${num - 26})`;
+      } else {
+        const isLatest = num === targetCount;
+        epTitle = `Episodio ${num} (Parte 4: The Calamity - Ep. ${num - 39}${isLatest ? " • Estreno de hoy" : ""})`;
+      }
+    }
+
     return {
       id: `${anime.id}-ep-${num}`,
-      title: isMovie
-        ? anime.title
-        : isOVA
-          ? `${anime.title} - OVA ${num}`
-          : `${anime.title} - Episodio ${num}`,
+      title: epTitle,
       number: num,
       animeId: anime.id,
       animeTitle: anime.title,

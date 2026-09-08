@@ -63,6 +63,27 @@ let DRIVE_MANIFEST: Record<string, any> = {};
   }
 })();
 
+// ── Cloudflare R2 Manifest: direct native high-speed streams ($0 egress) ──
+let R2_MANIFEST: Record<string, any> = {};
+function loadR2Manifest(): Record<string, any> {
+  const r2Paths = [
+    path.join(process.cwd(), "src/data/r2_episodes.json"),
+    path.join(process.cwd(), "dist/r2_episodes.json")
+  ];
+  for (const rp of r2Paths) {
+    try {
+      if (fs.existsSync(rp)) {
+        R2_MANIFEST = JSON.parse(fs.readFileSync(rp, "utf-8"));
+        return R2_MANIFEST;
+      }
+    } catch (e) {
+      console.warn("[R2 Manifest] Failed to load r2_episodes.json:", e);
+    }
+  }
+  return R2_MANIFEST;
+}
+loadR2Manifest();
+
 // ── OTP Rate Limiter: max 3 OTP requests per IP per 10 minutes ──
 const OTP_RATE_LIMITER: Record<string, { count: number; resetAt: number }> = {};
 function checkOtpRateLimit(ip: string): boolean {
@@ -156,6 +177,22 @@ export async function createExpressApp() {
 
   let GLOBAL_CUSTOM_ANIMES = readCustomDb();
   let GLOBAL_CUSTOM_MANGAS = readCustomMangasDb();
+
+  const catalogSrcPath = path.join(process.cwd(), "src/data/catalog.json");
+  const catalogDistPath = path.join(process.cwd(), "dist/catalog.json");
+
+  function persistCatalog(catalogData: any[]) {
+    try {
+      const dataStr = JSON.stringify(catalogData, null, 2);
+      fs.writeFileSync(catalogSrcPath, dataStr, "utf8");
+      if (fs.existsSync(path.dirname(catalogDistPath))) {
+        fs.writeFileSync(catalogDistPath, dataStr, "utf8");
+      }
+      console.log(`[Catalog] Successfully persisted ${catalogData.length} titles to catalog.json`);
+    } catch (e) {
+      console.error("[Catalog] Error writing catalog.json:", e);
+    }
+  }
 
   async function scrapeAnimeFromMonosChinosByTitle(title: string): Promise<any> {
     const cleanTitle = title
@@ -1153,17 +1190,53 @@ export async function createExpressApp() {
         }
       }
 
-      // If strict Drive episode exists and is a valid video (> 20MB), add it as our primary player
+      // Check if this episode exists in Cloudflare R2 (Tier-1 Ultra HD, $0 egress, native custom player)
+      const currentR2Manifest = loadR2Manifest();
+      let r2Ep: any = null;
+      for (const k of directKeys) {
+        if (currentR2Manifest[k]?.episodes?.[`ep-${epNum}`]) {
+          r2Ep = currentR2Manifest[k].episodes[`ep-${epNum}`];
+          break;
+        }
+      }
+      if (!r2Ep) {
+        for (const mKey of Object.keys(currentR2Manifest)) {
+          const normKey = mKey.toLowerCase().replace(/^tioanime-/, "").replace(/[^a-z0-9]/g, "");
+          const isExactKey = (normKey && normRawSlug && normKey === normRawSlug) || (normCatalogId && normKey === normCatalogId);
+          if (isExactKey && currentR2Manifest[mKey]?.episodes?.[`ep-${epNum}`]) {
+            r2Ep = currentR2Manifest[mKey].episodes[`ep-${epNum}`];
+            break;
+          }
+        }
+      }
+
+      // Bleach TYBW guard: NEVER allow classic Bleach episodes or invalid episode numbers into TYBW
+      const isBleachTYBWCheck = normRawSlug.includes("sennen") || normRawSlug.includes("thousandyear");
+      if (isBleachTYBWCheck) {
+        if (epNum > 47 || driveEp?.filename?.toLowerCase().includes("bleach - episodio")) {
+          driveEp = null;
+        }
+      }
+
+      // If strict Drive episode exists and is a valid video (> 20MB), add it as backup Drive player
       const driveSize = parseFloat(driveEp?.sizeMB || "0");
       if (driveEp && (driveEp.fileId || driveEp.streamUrl) && (isNaN(driveSize) || driveSize >= 20)) {
         const fileId = driveEp.fileId || (driveEp.streamUrl ? driveEp.streamUrl.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1] : null);
         if (fileId) {
-          // Add Google Drive preview iframe at top priority, keeping alternative servers below
+          // Add Google Drive preview iframe as alternative server
           combinedServers.unshift({
             name: "⚡ Google Drive (HD)",
             url: `https://drive.google.com/file/d/${fileId}/preview`
           });
         }
+      }
+
+      // If R2 episode exists, unshift it to the VERY TOP (Priority #1)
+      if (r2Ep && r2Ep.url) {
+        combinedServers.unshift({
+          name: r2Ep.name || "⚡ MegaAnime PRO (Ultra HD)",
+          url: r2Ep.url
+        });
       }
 
       // Custom DB fallback - note: no fallback video; real servers will be scraped per episode
@@ -1195,9 +1268,27 @@ export async function createExpressApp() {
         "deathnote", "dandadan", "overlord", "spyxfamily", "tokyoghoul", "rezero"
       ];
 
+      const isBleachTYBW = normRawSlug.includes("sennen") || normRawSlug.includes("thousandyear");
+      const isBleachTV = (normRawSlug === "bleach" || normRawSlug === "bleachtv") && !isBleachTYBW;
+
       const verifiedServers = combinedServers.filter(s => {
         const u = (s.url || "").toLowerCase().replace(/[^a-z0-9]/g, "");
         const n = (s.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+        // Bleach Season isolation: NEVER let 2004 Bleach servers into TYBW, or TYBW into 2004 Bleach
+        if (isBleachTYBW) {
+          if (u.includes("bleachtv") || (u.includes("bleach") && !u.includes("sennen") && !u.includes("thousand") && !u.includes("tybw") && !u.includes("google") && !u.includes("r2"))) {
+            console.warn(`[Anti-Mismatch Filter] Dropped 2004 Bleach server from TYBW: ${s.name} (${s.url})`);
+            return false;
+          }
+        }
+        if (isBleachTV) {
+          if (u.includes("sennen") || u.includes("thousandyear") || u.includes("tybw")) {
+            console.warn(`[Anti-Mismatch Filter] Dropped TYBW server from 2004 Bleach: ${s.name} (${s.url})`);
+            return false;
+          }
+        }
+
         for (const key of KNOWN_ANIME_DISTINCT_KEYS) {
           const isTargetAnime = currentAnimeKeywords.some(ak => ak.includes(key) || key.includes(ak));
           if (!isTargetAnime) {
@@ -2099,26 +2190,67 @@ export async function createExpressApp() {
     res.json(GLOBAL_CUSTOM_MANGAS);
   });
 
-  // 2. Save/Update custom anime
+  // 1c. Get R2 Cloudflare Manifest
+  app.get("/api/admin/r2-episodes", (req, res) => {
+    res.json(loadR2Manifest());
+  });
+
+  // 2. Save/Update catalog anime or movie (with disk persistence to catalog.json)
   app.post("/api/admin/animes/save", (req, res) => {
     try {
       const anime = req.body;
-      if (!anime || !anime.id) {
-        return res.status(400).json({ error: "Invalid anime object" });
+      if (!anime || !anime.title || anime.title.trim() === "") {
+        return res.status(400).json({ error: "El título es obligatorio" });
       }
 
-      GLOBAL_CUSTOM_ANIMES = readCustomDb();
-      const index = GLOBAL_CUSTOM_ANIMES.findIndex(a => a.id === anime.id);
-      if (index !== -1) {
-        GLOBAL_CUSTOM_ANIMES[index] = { ...GLOBAL_CUSTOM_ANIMES[index], ...anime };
+      // Generate or clean ID slug if missing
+      if (!anime.id || anime.id.trim() === "") {
+        const rawSlug = (anime.title_romaji || anime.title_english || anime.title)
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+        anime.id = `tioanime-${rawSlug || Date.now()}`;
+      }
+
+      // Set defaults
+      anime.type = anime.type || "Anime";
+      if (anime.type === "Película") {
+        anime.episodesCount = 1;
       } else {
-        GLOBAL_CUSTOM_ANIMES.push(anime);
+        anime.episodesCount = parseInt(anime.episodesCount, 10) || 12;
+      }
+      anime.rating = parseFloat(anime.rating) || 8.0;
+      anime.year = parseInt(anime.year, 10) || new Date().getFullYear();
+      anime.genres = Array.isArray(anime.genres) ? anime.genres : (anime.genres ? [anime.genres] : ["Acción"]);
+      anime.episodes = anime.episodes || [];
+
+      // 1. Update in-memory LOCAL_CATALOG
+      const index = LOCAL_CATALOG.findIndex(a => a.id === anime.id);
+      if (index !== -1) {
+        LOCAL_CATALOG[index] = { ...LOCAL_CATALOG[index], ...anime };
+      } else {
+        LOCAL_CATALOG.unshift(anime);
       }
 
+      // 2. Persist directly to catalog.json & dist/catalog.json
+      persistCatalog(LOCAL_CATALOG);
+
+      // 3. Keep custom DB in sync as well
+      GLOBAL_CUSTOM_ANIMES = readCustomDb();
+      const customIndex = GLOBAL_CUSTOM_ANIMES.findIndex(a => a.id === anime.id);
+      if (customIndex !== -1) {
+        GLOBAL_CUSTOM_ANIMES[customIndex] = { ...GLOBAL_CUSTOM_ANIMES[customIndex], ...anime };
+      } else {
+        GLOBAL_CUSTOM_ANIMES.unshift(anime);
+      }
       writeCustomDb(GLOBAL_CUSTOM_ANIMES);
-      apiCache.flushAll(); // Flush cache so it updates on home screen
+
+      apiCache.flushAll(); // Flush cache so home, movies, and search show changes instantly
       res.json({ success: true, anime });
     } catch (e: any) {
+      console.error("Error saving anime:", e);
       res.status(500).json({ error: e.message });
     }
   });
@@ -2146,7 +2278,7 @@ export async function createExpressApp() {
     }
   });
 
-  // 3. Delete custom anime
+  // 3. Delete anime or movie from catalog (with disk persistence)
   app.post("/api/admin/animes/delete", (req, res) => {
     try {
       const { id } = req.body;
@@ -2154,12 +2286,19 @@ export async function createExpressApp() {
         return res.status(400).json({ error: "Missing anime ID" });
       }
 
+      // Remove from LOCAL_CATALOG
+      LOCAL_CATALOG = LOCAL_CATALOG.filter(a => a.id !== id);
+      persistCatalog(LOCAL_CATALOG);
+
+      // Also remove from GLOBAL_CUSTOM_ANIMES
       GLOBAL_CUSTOM_ANIMES = readCustomDb();
       GLOBAL_CUSTOM_ANIMES = GLOBAL_CUSTOM_ANIMES.filter(a => a.id !== id);
       writeCustomDb(GLOBAL_CUSTOM_ANIMES);
+
       apiCache.flushAll();
       res.json({ success: true });
     } catch (e: any) {
+      console.error("Error deleting anime:", e);
       res.status(500).json({ error: e.message });
     }
   });
@@ -2178,6 +2317,39 @@ export async function createExpressApp() {
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
+    }
+  });
+
+  // 4. Suggest metadata and covers from AniList for Admin creation/editing
+  app.get("/api/admin/catalog/suggest-media", async (req, res) => {
+    try {
+      const queryStr = (req.query.search as string || "").trim();
+      if (!queryStr) {
+        return res.status(400).json({ error: "Search query required" });
+      }
+
+      const gqlResult = await queryAniListGraphQL({ search: queryStr, perPage: 5 });
+      if (gqlResult && gqlResult.Page && Array.isArray(gqlResult.Page.media) && gqlResult.Page.media.length > 0) {
+        const suggestions = gqlResult.Page.media.map((m: any) => ({
+          title: m.title?.romaji || m.title?.english || queryStr,
+          title_english: m.title?.english || "",
+          title_romaji: m.title?.romaji || "",
+          coverUrl: m.coverImage?.extraLarge || m.coverImage?.large || "",
+          bannerUrl: m.bannerImage || m.coverImage?.extraLarge || "",
+          synopsis: m.description ? m.description.replace(/<[^>]*>/g, "").replace(/\n+/g, " ").trim() : "",
+          genres: m.genres || [],
+          rating: m.averageScore ? parseFloat((m.averageScore / 10).toFixed(1)) : 8.5,
+          year: m.seasonYear || new Date().getFullYear(),
+          episodesCount: m.episodes || 12,
+          type: m.format === "MOVIE" ? "Película" : m.format === "OVA" ? "OVA" : "Anime",
+          status: m.status === "RELEASING" ? "En emisión" : m.status === "NOT_YET_RELEASED" ? "Próximamente" : "Finalizado"
+        }));
+        return res.json({ success: true, suggestions });
+      }
+      res.json({ success: false, suggestions: [] });
+    } catch (err: any) {
+      console.error("Error suggesting media:", err);
+      res.status(500).json({ error: err.message });
     }
   });
 
@@ -3158,7 +3330,8 @@ export async function createExpressApp() {
   });
 
   // Configure middleware (Vite Dev Server vs Static Production bundle)
-  const isProduction = process.env.NODE_ENV === "production" || fs.existsSync(path.join(process.cwd(), "dist/index.html"));
+  const isDevExecution = process.env.NODE_ENV === "development" || process.argv[1]?.endsWith("server.ts");
+  const isProduction = !isDevExecution && (process.env.NODE_ENV === "production" || fs.existsSync(path.join(process.cwd(), "dist/index.html")));
 
   if (!isProduction) {
     console.log("Starting server in DEVELOPMENT mode (booting Vite Dev Server)...");

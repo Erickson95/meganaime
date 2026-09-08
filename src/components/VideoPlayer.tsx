@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { 
   X, 
   Server, 
@@ -49,8 +49,9 @@ function isEmbedUrl(url: string): boolean {
   if (!url) return false;
   const lower = url.toLowerCase();
 
-  // Direct media streams and raw downloads always use our native <video> player
+  // Direct media streams, Cloudflare R2, and raw downloads always use our native <video> player
   if (
+    lower.includes(".r2.dev") ||
     lower.includes("/api/gdrive-stream") ||
     lower.includes("/api/proxy-stream") ||
     lower.includes("blob:") ||
@@ -446,22 +447,23 @@ export default function VideoPlayer({
     return true;
   });
 
-  // Check if a Google Drive / MegaAnime Direct server exists in the list
+  // Check if a Cloudflare R2 / Google Drive / MegaAnime Direct server exists in the list
   const hasDriveServer = filteredServers.some(s => {
     const u = (s.url || "").toLowerCase();
     const n = (s.name || "").toLowerCase();
-    return u.includes("drive.google.com") || u.includes("drive.usercontent.google.com") || u.includes("gdrive-stream") || u.includes("google.com/file") ||
+    return u.includes(".r2.dev") || u.includes("drive.google.com") || u.includes("drive.usercontent.google.com") || u.includes("gdrive-stream") || u.includes("google.com/file") ||
            n.includes("megaanime") || n.includes("sin anuncios") || n.includes("exclusivo");
   });
 
   // Drive server is prioritized first, with external servers available as backups
   const serversBeforeSort = filteredServers;
 
-  // Sort: Drive/MegaAnime always first, then best external servers
+  // Sort: R2 PRO HD (-1) > Drive/MegaAnime (0) > Direct MP4 (1) > Voe (2) > external
   const servers = [...serversBeforeSort].sort((a, b) => {
     const getScore = (s: { name: string; url: string }) => {
       const u = (s.url || "").toLowerCase();
       const n = (s.name || "").toLowerCase();
+      if (u.includes(".r2.dev")) return -1; // Top priority: Cloudflare R2 native stream ($0 egress)
       if (u.includes("drive.google.com") || u.includes("gdrive-stream") || u.includes("google.com/file") || n.includes("drive") || n.includes("megaanime")) return 0;
       if (u.endsWith(".mp4") || u.endsWith(".m3u8") || u.includes(".mp4?") || u.includes(".m3u8?")) return 1;
       if (u.includes("voe") || n.includes("voe")) return 2;
@@ -484,9 +486,9 @@ export default function VideoPlayer({
     let isMounted = true;
 
     const findAndSelectCustomPlayerServer = async () => {
-      // 0. If Google Drive / MegaAnime Direct server exists, select it IMMEDIATELY as top priority
+      // 0. If Cloudflare R2 / Google Drive / MegaAnime Direct server exists, select it IMMEDIATELY as top priority
       const driveIdx = servers.findIndex(s => s && (
-        (s.url && (s.url.includes("drive.google.com") || s.url.includes("gdrive-stream") || s.url.includes("gdrive-token") || s.url.includes("google.com/file"))) ||
+        (s.url && (s.url.includes(".r2.dev") || s.url.includes("drive.google.com") || s.url.includes("gdrive-stream") || s.url.includes("gdrive-token") || s.url.includes("google.com/file"))) ||
         (s.name && (s.name.toLowerCase().includes("megaanime") || s.name.toLowerCase().includes("drive") || s.name.toLowerCase().includes("exclusivo")))
       ));
       if (driveIdx !== -1) {
@@ -587,7 +589,18 @@ export default function VideoPlayer({
     setResolvedIsHls(false);
 
     const checkAndResolve = async () => {
-      // Dedicated Google Drive / MegaAnime HD server — use native player
+      // 0. Cloudflare R2 direct stream ($0 egress, native PRO player)
+      const isR2 = (activeServer.url || "").includes(".r2.dev");
+      if (isR2) {
+        setResolvedStreamUrl(activeServer.url);
+        setUseResolvedPlayer(true);
+        setResolvedIsHls(false);
+        setVideoError(null);
+        setIsResolving(false);
+        return;
+      }
+
+      // Dedicated Google Drive / MegaAnime HD server — use preview iframe fallback
       const isDrive = (activeServer.url || "").includes("drive.google.com") ||
                       (activeServer.url || "").includes("drive.usercontent.google.com") ||
                       (activeServer.url || "").includes("gdrive-stream") ||
@@ -942,6 +955,39 @@ export default function VideoPlayer({
     return url;
   }, [activeServer, resolvedStreamUrl, useResolvedPlayer, episodeId, animeId, currentUser, resolvedTitle]);
 
+  const handleVideoError = useCallback(() => {
+    console.warn(`[Auto-Player] Direct stream error on ${activeServer?.name}. Checking fallback options.`);
+
+    // If R2 fails, switch to next available backup server (e.g. Google Drive preview or Voe)
+    if (activeServer?.url && activeServer.url.includes(".r2.dev") && fallbackServerIdx !== -1) {
+      console.warn("[Auto-Player] R2 video playback failed, falling back to backup server.");
+      setActiveServerIdx(fallbackServerIdx);
+      return;
+    }
+
+    const fileMatch =
+      (activeServer?.url || "").match(/[?&]fileId=([a-zA-Z0-9_-]+)/) ||
+      (activeServer?.url || "").match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+      (activeServer?.url || "").match(/\/d\/([a-zA-Z0-9_-]+)/) ||
+      (activeServer?.url || "").match(/[?&]id=([a-zA-Z0-9_-]+)/);
+
+    const fileId = fileMatch ? fileMatch[1] : null;
+
+    if (fileId) {
+      const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+      setResolvedStreamUrl(previewUrl);
+      setUseResolvedPlayer(false);
+      setVideoError(null);
+      setIsAutoAdvancing(false);
+      return;
+    }
+
+    setUseResolvedPlayer(false);
+    setResolvedStreamUrl(activeServer?.url || "");
+    setVideoError(null);
+    setIsAutoAdvancing(false);
+  }, [activeServer, fallbackServerIdx]);
+
   // Direct video load & HLS support with auto-advance on fatal error
   useEffect(() => {
     if (!resolvedStreamUrl || !useResolvedPlayer) return;
@@ -953,32 +999,6 @@ export default function VideoPlayer({
 
     let hls: Hls | null = null;
     const isHls = resolvedIsHls || resolvedStreamUrl.toLowerCase().split("?")[0].split("#")[0].endsWith(".m3u8");
-
-    const handleVideoError = () => {
-      console.warn(`[Auto-Player] Direct stream error on ${activeServer?.name}. Checking fallback options.`);
-
-      const fileMatch =
-        (activeServer?.url || "").match(/[?&]fileId=([a-zA-Z0-9_-]+)/) ||
-        (activeServer?.url || "").match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
-        (activeServer?.url || "").match(/\/d\/([a-zA-Z0-9_-]+)/) ||
-        (activeServer?.url || "").match(/[?&]id=([a-zA-Z0-9_-]+)/);
-
-      const fileId = fileMatch ? fileMatch[1] : null;
-
-      if (fileId) {
-        const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-        setResolvedStreamUrl(previewUrl);
-        setUseResolvedPlayer(false);
-        setVideoError(null);
-        setIsAutoAdvancing(false);
-        return;
-      }
-
-      setUseResolvedPlayer(false);
-      setResolvedStreamUrl(activeServer?.url || "");
-      setVideoError(null);
-      setIsAutoAdvancing(false);
-    };
 
     const startPlayback = (videoEl: HTMLVideoElement) => {
       setIsPlaying(true);
@@ -1452,13 +1472,8 @@ export default function VideoPlayer({
                       }
                     }}
                     onError={() => {
-                      if (hasDriveServer) {
-                        console.warn("[Auto-Player] Direct Drive video stream active, maintaining native player.");
-                        return;
-                      }
-                      console.warn(`[Auto-Player] Direct video stream error on server #${activeServerIdx + 1}. Falling back to embed player.`);
-                      setUseResolvedPlayer(false);
-                      setResolvedStreamUrl(activeServer.url);
+                      console.warn(`[Auto-Player] Direct video stream error on server #${activeServerIdx + 1}. Triggering fallback.`);
+                      handleVideoError();
                     }}
                   />
                   

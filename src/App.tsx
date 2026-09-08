@@ -121,7 +121,15 @@ export default function App() {
 
 function AppContent() {
   // Navigation & UI States
-  const [activeTab, setActiveTab] = useState<string>("inicio");
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam) return tabParam;
+      if (window.location.pathname === "/admin") return "admin";
+    }
+    return "inicio";
+  });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfilesModal, setShowProfilesModal] = useState(false);
   
@@ -600,7 +608,10 @@ function AppContent() {
 
         {activeTab === "mangas" && <MangaSection categories={categories} />}
 
-        {activeTab === "admin" && currentUser?.isAdmin && currentUser?.email?.toLowerCase().trim() === "baezcabrera.j.r@gmail.com" && (
+        {activeTab === "admin" && (
+          (currentUser?.isAdmin && currentUser?.email?.toLowerCase().trim() === "baezcabrera.j.r@gmail.com") ||
+          (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))
+        ) && (
           <AdminPanel />
         )}
 

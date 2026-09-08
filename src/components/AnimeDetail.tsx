@@ -28,7 +28,7 @@ import { Anime, Episode, Manga, User } from "../types";
 import { getAnimePlaceholder, getProxyImageUrl, recoverCoverImageInHotPath } from "../utils/imageUtils";
 import { getAnimesWithEpisodes, getBaseTitle, generateEpisodesForAnime, getAvailableEpisodesCountForAiring } from "../utils/animeDb";
 import { getApiUrl } from "../utils/apiConfig";
-import { syncEpisodeProgress, PlaybackProgress, syncAllEpisodesProgressFromFirestore, getCanonicalEpisodeKey, normalizeAnimeId } from "../utils/progress";
+import { syncEpisodeProgress, PlaybackProgress, syncAllEpisodesProgressFromFirestore, getCanonicalEpisodeKey, normalizeAnimeId, saveEpisodeProgress } from "../utils/progress";
 import { saveEpisodeDownload, isEpisodeDownloaded, deleteEpisodeDownload } from "../utils/downloadDb";
 import { collection, query, where, orderBy, getDocs, addDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";

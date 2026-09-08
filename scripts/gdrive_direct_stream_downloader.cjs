@@ -345,8 +345,8 @@ async function streamToGoogleDrive(videoUrl, remotePath, referer, onProgress) {
 
   targetAnimes.forEach(anime => {
     let targetEps = airingMap[anime.id] || (anime.episodes ? anime.episodes.length : (anime.episodesCount || 1));
-    if (anime.id.includes("bleach-sennen")) targetEps = 44;
-    if (anime.id.includes("one-piece")) targetEps = 1174;
+    if (anime.id.includes("bleach-sennen")) targetEps = Math.max(targetEps, 46);
+    if (anime.id.includes("one-piece")) targetEps = Math.max(targetEps, 1176);
     const normTitle = normalize(anime.title);
     const normId = normalize(anime.id.replace(/^tioanime-/, ""));
 
@@ -456,12 +456,12 @@ async function streamToGoogleDrive(videoUrl, remotePath, referer, onProgress) {
     return getPriority(a) - getPriority(b);
   });
 
-  // Para Bleach: reordenar missingEps para que el episodio más reciente (45) se descargue primero
+  // Para Bleach: ordenar missingEps de mayor a menor para descargar los más recientes primero
   pendingQueue.forEach(item => {
     const id = (item.anime.id || "").toLowerCase();
     const title = (item.anime.title || "").toLowerCase();
-    if ((id.includes("bleach") || title.includes("bleach")) && item.missingEps.includes(45)) {
-      item.missingEps = [45, ...item.missingEps.filter(e => e !== 45)];
+    if (id.includes("bleach") || title.includes("bleach")) {
+      item.missingEps.sort((a, b) => b - a);
     }
   });
 

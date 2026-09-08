@@ -48,13 +48,18 @@ import {
   MapPin,
   Wifi,
   Clock,
-  Copy
+  Copy,
+  Cloud,
+  Zap,
+  Sparkles,
+  Image as ImageIcon
 } from 'lucide-react';
-import { MOCK_ANIMES } from '../utils/animeDb';
+import { MOCK_ANIMES, getAnimesWithEpisodes } from '../utils/animeDb';
 import { MOCK_MANGAS } from '../utils/mangaDb';
 import { fetchUserReports, updateReportStatus, UserReport } from '../utils/reports';
 import { getGlobalBannerAlert, saveGlobalBannerAlert, GlobalBannerAlert } from '../utils/systemAlerts';
 import { getApiUrl } from '../utils/apiConfig';
+import r2ManifestDefault from '../data/r2_episodes.json';
 
 export interface LiveUserItem {
   sessionId: string;
@@ -90,8 +95,11 @@ export interface LiveTelemetryData {
 interface LocalAnime {
   id: string;
   title: string;
+  title_english?: string;
+  title_romaji?: string;
   synopsis: string;
   coverUrl: string;
+  bannerUrl?: string;
   genres: string[];
   status: string;
   rating: number;
@@ -204,9 +212,52 @@ export default function AdminPanel() {
   const [mangas, setMangas] = useState<any[]>([]);
   const [catalogFilter, setCatalogFilter] = useState<'anime' | 'movie' | 'manga'>('anime');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 10;
+  const [jumpPageInput, setJumpPageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAnime, setSelectedAnime] = useState<LocalAnime | null>(null);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [animeToDelete, setAnimeToDelete] = useState<LocalAnime | null>(null);
+  const [editorTab, setEditorTab] = useState<'general' | 'images' | 'metadata'>('general');
+  const [isSuggestingMedia, setIsSuggestingMedia] = useState(false);
+  const [catalogStatusFilter, setCatalogStatusFilter] = useState<'all' | 'En emisión' | 'Finalizado' | 'Próximamente'>('all');
+  const [isSavingCatalog, setIsSavingCatalog] = useState(false);
+  const [isDeletingCatalog, setIsDeletingCatalog] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  
+  // Cloudflare R2 Manifest State (live updates)
+  const [r2Manifest, setR2Manifest] = useState<Record<string, any>>(r2ManifestDefault || {});
+
+  const getR2Info = (item: LocalAnime | null) => {
+    if (!item || !r2Manifest) return null;
+    let entry = r2Manifest[item.id];
+    if (!entry && r2Manifest[`tioanime-${item.id}`]) {
+      entry = r2Manifest[`tioanime-${item.id}`];
+    }
+    if (!entry && item.id.includes("bleach")) {
+      entry = r2Manifest["tioanime-bleach-sennen-kessenhen"] || r2Manifest["bleach-sennen-kessen-hen"];
+    }
+    if (!entry) {
+      for (const k of Object.keys(r2Manifest)) {
+        const normK = k.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const normId = item.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (normId.length >= 4 && (normId.includes(normK) || normK.includes(normId))) {
+          entry = r2Manifest[k];
+          break;
+        }
+      }
+    }
+    if (entry && entry.episodes) {
+      const epKeys = Object.keys(entry.episodes);
+      if (epKeys.length > 0) {
+        return {
+          count: epKeys.length,
+          title: entry.title || item.title
+        };
+      }
+    }
+    return null;
+  };
   
   // Category management
   const [categories, setCategories] = useState<string[]>([
@@ -410,22 +461,26 @@ export default function AdminPanel() {
   // Load Catalog, Real Registered Users, and Monthly Analytics from Firestore
   useEffect(() => {
     async function loadCatalog() {
+      const baseCatalog = getAnimesWithEpisodes();
       try {
         const res = await fetch('/api/admin/animes');
         if (res.ok) {
           const customAnimes = await res.json();
           const customMap = new Map(customAnimes.map((a: any) => [a.id, a]));
           
-          // Merge custom with MOCK_ANIMES
-          const merged = MOCK_ANIMES.map(a => {
+          // Merge custom with full catalog
+          const merged: LocalAnime[] = (baseCatalog as any[]).map((a: any): LocalAnime => {
             if (customMap.has(a.id)) {
-              return customMap.get(a.id);
+              return customMap.get(a.id) as LocalAnime;
             }
             return {
               id: a.id,
               title: a.title,
+              title_english: a.title_english,
+              title_romaji: a.title_romaji,
               synopsis: a.synopsis || '',
               coverUrl: a.coverUrl || '',
+              bannerUrl: a.bannerUrl,
               genres: a.genres || [],
               status: a.status || 'Publicado',
               rating: a.rating || 8.0,
@@ -435,21 +490,24 @@ export default function AdminPanel() {
             };
           });
 
-          // Append any completely new custom animes
+          // Prepend any completely new custom animes created by admin
           customAnimes.forEach((a: any) => {
-            if (!MOCK_ANIMES.some(m => m.id === a.id)) {
-              merged.push(a);
+            if (!baseCatalog.some(m => m.id === a.id)) {
+              merged.unshift(a as LocalAnime);
             }
           });
 
           setAnimes(merged);
         } else {
-          // Fallback to static mock if backend fails
-          setAnimes(MOCK_ANIMES.map(a => ({
+          // Fallback to baseCatalog if backend API fails
+          setAnimes((baseCatalog as any[]).map((a: any): LocalAnime => ({
             id: a.id,
             title: a.title,
+            title_english: a.title_english,
+            title_romaji: a.title_romaji,
             synopsis: a.synopsis || '',
             coverUrl: a.coverUrl || '',
+            bannerUrl: a.bannerUrl,
             genres: a.genres || [],
             status: a.status || 'Publicado',
             rating: a.rating || 8.0,
@@ -459,12 +517,15 @@ export default function AdminPanel() {
           })));
         }
       } catch (e) {
-        console.error("Error fetching custom database, using local fallback:", e);
-        setAnimes(MOCK_ANIMES.map(a => ({
+        console.error("Error fetching custom database, using full catalog fallback:", e);
+        setAnimes((baseCatalog as any[]).map((a: any): LocalAnime => ({
           id: a.id,
           title: a.title,
+          title_english: a.title_english,
+          title_romaji: a.title_romaji,
           synopsis: a.synopsis || '',
           coverUrl: a.coverUrl || '',
+          bannerUrl: a.bannerUrl,
           genres: a.genres || [],
           status: a.status || 'Publicado',
           rating: a.rating || 8.0,
@@ -512,6 +573,15 @@ export default function AdminPanel() {
         console.error("Error fetching custom mangas database:", e);
         setMangas(MOCK_MANGAS);
       }
+
+      // Load Cloudflare R2 Manifest
+      try {
+        const r2Res = await fetch(getApiUrl('/api/admin/r2-episodes'));
+        if (r2Res.ok) {
+          const r2Data = await r2Res.json();
+          setR2Manifest(r2Data);
+        }
+      } catch (e) {}
     }
 
     async function loadRealUsers() {
@@ -611,9 +681,9 @@ export default function AdminPanel() {
   // Reset page when filtering or searching
   useEffect(() => {
     setCurrentPage(1);
-  }, [catalogFilter, searchQuery]);
+  }, [catalogFilter, searchQuery, catalogStatusFilter]);
 
-  // General Filter items depending on tab selection (Anime, Película, Manga)
+  // General Filter items depending on tab selection (Anime, Película, Manga) and status
   const getFilteredItems = () => {
     let dataset: any[] = [];
     if (catalogFilter === 'anime') {
@@ -624,10 +694,21 @@ export default function AdminPanel() {
       dataset = mangas;
     }
 
-    return dataset.filter(item => 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.genres && item.genres.some((g: string) => g.toLowerCase().includes(searchQuery.toLowerCase())))
-    );
+    if (catalogStatusFilter !== 'all') {
+      dataset = dataset.filter(item => item.status === catalogStatusFilter);
+    }
+
+    if (!searchQuery.trim()) return dataset;
+
+    const q = searchQuery.toLowerCase().trim();
+    return dataset.filter(item => {
+      const matchTitle = (item.title || '').toLowerCase().includes(q);
+      const matchEng = (item.title_english || '').toLowerCase().includes(q);
+      const matchRomaji = (item.title_romaji || '').toLowerCase().includes(q);
+      const matchId = (item.id || '').toLowerCase().includes(q);
+      const matchGenres = Array.isArray(item.genres) && item.genres.some((g: string) => (g || '').toLowerCase().includes(q));
+      return matchTitle || matchEng || matchRomaji || matchId || matchGenres;
+    });
   };
 
   const filteredItems = getFilteredItems();
@@ -705,64 +786,189 @@ export default function AdminPanel() {
   const [scrapeUrl, setScrapeUrl] = useState('');
   const [scraping, setScraping] = useState(false);
 
-  // Save changes to backend server!
-  const handleSaveAnimeEdits = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedAnime) {
-      const isManga = catalogFilter === 'manga';
-      const endpoint = isManga ? '/api/admin/mangas/save' : '/api/admin/animes/save';
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(selectedAnime)
+  // Open modal in creation mode
+  const handleOpenCreateModal = () => {
+    const isMovie = catalogFilter === 'movie';
+    const isManga = catalogFilter === 'manga';
+    setSelectedAnime({
+      id: '',
+      title: '',
+      title_english: '',
+      title_romaji: '',
+      synopsis: '',
+      coverUrl: '',
+      bannerUrl: '',
+      genres: ['Acción'],
+      status: isMovie ? 'Finalizado' : 'En emisión',
+      rating: 8.5,
+      type: isMovie ? 'Película' : isManga ? 'Manga' : 'Anime',
+      episodesCount: isMovie ? 1 : 12,
+      chaptersCount: isManga ? 1 : undefined,
+      year: new Date().getFullYear()
+    });
+    setIsCreatingNew(true);
+    setEditorTab('general');
+  };
+
+  // Open modal in edit mode
+  const handleOpenEditModal = (item: LocalAnime) => {
+    setSelectedAnime({
+      ...item,
+      title_english: item.title_english || '',
+      title_romaji: item.title_romaji || '',
+      bannerUrl: item.bannerUrl || '',
+      genres: Array.isArray(item.genres) && item.genres.length > 0 ? item.genres : ['Acción']
+    });
+    setIsCreatingNew(false);
+    setEditorTab('general');
+  };
+
+  // Suggest metadata & covers from AniList
+  const handleSuggestFromAniList = async () => {
+    if (!selectedAnime || !selectedAnime.title.trim()) {
+      alert("Por favor ingresa primero un título en el campo principal.");
+      return;
+    }
+    setIsSuggestingMedia(true);
+    try {
+      const res = await fetch(`/api/admin/catalog/suggest-media?search=${encodeURIComponent(selectedAnime.title.trim())}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+        const top = data.suggestions[0];
+        setSelectedAnime(prev => prev ? {
+          ...prev,
+          title_english: top.title_english || prev.title_english,
+          title_romaji: top.title_romaji || prev.title_romaji,
+          coverUrl: top.coverUrl || prev.coverUrl,
+          bannerUrl: top.bannerUrl || prev.bannerUrl,
+          synopsis: top.synopsis || prev.synopsis,
+          genres: top.genres && top.genres.length > 0 ? top.genres : prev.genres,
+          rating: top.rating || prev.rating,
+          year: top.year || prev.year,
+          episodesCount: prev.type === 'Película' ? 1 : (top.episodesCount || prev.episodesCount)
+        } : null);
+        setToastMessage({
+          text: `¡Datos y portadas de "${top.title}" importados desde AniList!`,
+          type: 'success'
         });
-        if (res.ok) {
-          if (isManga) {
-            setMangas(mangas.map(m => m.id === selectedAnime.id ? selectedAnime : m));
-          } else {
-            setAnimes(animes.map(a => a.id === selectedAnime.id ? selectedAnime : a));
-          }
-          setSelectedAnime(null);
-          alert('¡Contenido guardado con éxito en el servidor!');
-        } else {
-          alert('Error al guardar el contenido en el servidor.');
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Error de red al guardar el contenido.');
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        alert("No se encontraron coincidencias en AniList para este título.");
       }
+    } catch (e) {
+      console.error("Error al sugerir de AniList:", e);
+      alert("Error al conectar con AniList.");
+    } finally {
+      setIsSuggestingMedia(false);
     }
   };
 
-  // Delete content from catalog
-  const handleDeleteAnime = async (animeId: string) => {
-    const isManga = catalogFilter === 'manga';
-    const msg = isManga 
-      ? '¿Estás seguro de que deseas eliminar este manga del catálogo?' 
-      : '¿Estás seguro de que deseas eliminar este anime del catálogo?';
-    if (confirm(msg)) {
-      const endpoint = isManga ? '/api/admin/mangas/delete' : '/api/admin/animes/delete';
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: animeId })
-        });
-        if (res.ok) {
-          if (isManga) {
-            setMangas(mangas.filter(m => m.id !== animeId));
+  // Toggle genre in selectedAnime
+  const handleToggleGenre = (genreName: string) => {
+    if (!selectedAnime) return;
+    const current = selectedAnime.genres || [];
+    if (current.includes(genreName)) {
+      if (current.length === 1) return; // keep at least 1 genre
+      setSelectedAnime({
+        ...selectedAnime,
+        genres: current.filter(g => g !== genreName)
+      });
+    } else {
+      setSelectedAnime({
+        ...selectedAnime,
+        genres: [...current, genreName]
+      });
+    }
+  };
+
+  // Save changes to backend server & persist to catalog.json!
+  const handleSaveAnimeEdits = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAnime) return;
+    if (!selectedAnime.title.trim()) {
+      alert("El título no puede estar vacío.");
+      return;
+    }
+
+    setIsSavingCatalog(true);
+    const isManga = catalogFilter === 'manga' || selectedAnime.type === 'Manga';
+    const endpoint = isManga ? '/api/admin/mangas/save' : '/api/admin/animes/save';
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(selectedAnime)
+      });
+      const data = await res.json();
+      if (res.ok && (data.success || data.anime || data.manga)) {
+        const savedItem = data.anime || data.manga || selectedAnime;
+        if (isManga) {
+          const exists = mangas.some(m => m.id === savedItem.id);
+          if (exists) {
+            setMangas(mangas.map(m => m.id === savedItem.id ? savedItem : m));
           } else {
-            setAnimes(animes.filter(a => a.id !== animeId));
+            setMangas([savedItem, ...mangas]);
           }
-          alert('Contenido eliminado con éxito de la base de datos.');
         } else {
-          alert('Error al intentar eliminar del servidor.');
+          const exists = animes.some(a => a.id === savedItem.id);
+          if (exists) {
+            setAnimes(animes.map(a => a.id === savedItem.id ? savedItem : a));
+          } else {
+            setAnimes([savedItem, ...animes]);
+          }
         }
-      } catch (err) {
-        console.error(err);
-        alert('Error de red al eliminar el contenido.');
+        setSelectedAnime(null);
+        setIsCreatingNew(false);
+        setToastMessage({
+          text: `"${savedItem.title}" guardado permanentemente en el catálogo.`,
+          type: 'success'
+        });
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        alert('Error: ' + (data.error || 'No se pudo guardar en el servidor.'));
       }
+    } catch (err) {
+      console.error(err);
+      alert('Error de red al guardar el contenido.');
+    } finally {
+      setIsSavingCatalog(false);
+    }
+  };
+
+  // Confirm delete from catalog
+  const handleConfirmDelete = async () => {
+    if (!animeToDelete) return;
+    setIsDeletingCatalog(true);
+    const isManga = catalogFilter === 'manga' || animeToDelete.type === 'Manga';
+    const endpoint = isManga ? '/api/admin/mangas/delete' : '/api/admin/animes/delete';
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: animeToDelete.id })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (isManga) {
+          setMangas(mangas.filter(m => m.id !== animeToDelete.id));
+        } else {
+          setAnimes(animes.filter(a => a.id !== animeToDelete.id));
+        }
+        const deletedTitle = animeToDelete.title;
+        setAnimeToDelete(null);
+        setToastMessage({
+          text: `"${deletedTitle}" eliminado definitivamente del catálogo.`,
+          type: 'success'
+        });
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        alert('Error al eliminar: ' + (data.error || 'Intente de nuevo.'));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de red al eliminar el contenido.');
+    } finally {
+      setIsDeletingCatalog(false);
     }
   };
 
@@ -1843,57 +2049,123 @@ export default function AdminPanel() {
         {/* 2. CATALOGUE TAB */}
         {activeTab === 'catalogo' && (
           <div className="space-y-8 animate-slide-in">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex flex-col space-y-1">
-                <h1 className="text-xl font-extrabold text-white tracking-tight">Catálogo de Videos</h1>
-                <p className="text-xs text-neutral-400">Administra todos los animes, sinopsis, portadas y géneros de la plataforma.</p>
+            {/* Header: Title + Action buttons */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-gradient-to-r from-neutral-900/60 via-neutral-900/30 to-rose-950/20 border border-white/5 p-5 rounded-2xl">
+              <div className="flex flex-col space-y-1.5">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Catálogo y Estudio de Contenidos</h1>
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 tracking-wider uppercase flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    Studio Admin
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400 max-w-2xl">
+                  Control total sobre animes, películas y mangas. Edita nombres, actualiza portadas y banners con vista previa en vivo, y agrega o elimina contenido con persistencia inmediata en disco.
+                </p>
               </div>
 
-              {/* Master Search input */}
-              <div className="relative max-w-sm w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
-                <input
-                  type="text"
-                  placeholder="Buscar en el catálogo..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-neutral-900 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500 transition-colors"
-                />
+              <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+                {/* Master Search input */}
+                <div className="relative min-w-[220px] flex-grow sm:flex-grow-0">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
+                  <input
+                    type="text"
+                    placeholder="Buscar título, ID o género..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-8 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500 transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors cursor-pointer"
+                      title="Limpiar búsqueda"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Netflix-style Add Content Button */}
+                <button
+                  onClick={handleOpenCreateModal}
+                  className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all duration-200 cursor-pointer flex items-center gap-2 shadow-lg shadow-rose-600/30 hover:shadow-rose-600/50 active:scale-95 whitespace-nowrap"
+                >
+                  <Plus className="h-4 w-4 stroke-[3]" />
+                  <span>+ Nuevo Título</span>
+                </button>
               </div>
             </div>
 
-            {/* Catalog sub-filters selection tabs */}
-            <div className="flex border-b border-white/5 pb-2 gap-6 text-xs font-bold uppercase tracking-wider">
-              <button
-                onClick={() => setCatalogFilter('anime')}
-                className={`pb-2 border-b-2 transition-all cursor-pointer ${
-                  catalogFilter === 'anime' 
-                    ? 'border-rose-500 text-rose-400 font-extrabold' 
-                    : 'border-transparent text-neutral-400 hover:text-white'
-                }`}
-              >
-                Animes
-              </button>
-              <button
-                onClick={() => setCatalogFilter('movie')}
-                className={`pb-2 border-b-2 transition-all cursor-pointer ${
-                  catalogFilter === 'movie' 
-                    ? 'border-rose-500 text-rose-400 font-extrabold' 
-                    : 'border-transparent text-neutral-400 hover:text-white'
-                }`}
-              >
-                Películas
-              </button>
-              <button
-                onClick={() => setCatalogFilter('manga')}
-                className={`pb-2 border-b-2 transition-all cursor-pointer ${
-                  catalogFilter === 'manga' 
-                    ? 'border-rose-500 text-rose-400 font-extrabold' 
-                    : 'border-transparent text-neutral-400 hover:text-white'
-                }`}
-              >
-                Mangas
-              </button>
+            {/* Catalog sub-filters selection tabs and status chips */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-white/5 pb-3 gap-4">
+              {/* Type tabs */}
+              <div className="flex gap-2 sm:gap-3 text-xs font-bold tracking-wider">
+                <button
+                  onClick={() => { setCatalogFilter('anime'); setCatalogStatusFilter('all'); }}
+                  className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                    catalogFilter === 'anime' 
+                      ? 'bg-rose-500/15 border border-rose-500/30 text-rose-400 font-extrabold shadow-sm' 
+                      : 'bg-neutral-900/40 border border-white/5 text-neutral-400 hover:text-white hover:border-neutral-700'
+                  }`}
+                >
+                  <span>Animes</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/10 text-neutral-300 font-mono">
+                    {animes.filter(a => a.type !== 'Película').length.toLocaleString()}
+                  </span>
+                </button>
+                <button
+                  onClick={() => { setCatalogFilter('movie'); setCatalogStatusFilter('all'); }}
+                  className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                    catalogFilter === 'movie' 
+                      ? 'bg-rose-500/15 border border-rose-500/30 text-rose-400 font-extrabold shadow-sm' 
+                      : 'bg-neutral-900/40 border border-white/5 text-neutral-400 hover:text-white hover:border-neutral-700'
+                  }`}
+                >
+                  <span>Películas</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/10 text-neutral-300 font-mono">
+                    {animes.filter(a => a.type === 'Película').length.toLocaleString()}
+                  </span>
+                </button>
+                <button
+                  onClick={() => { setCatalogFilter('manga'); setCatalogStatusFilter('all'); }}
+                  className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                    catalogFilter === 'manga' 
+                      ? 'bg-rose-500/15 border border-rose-500/30 text-rose-400 font-extrabold shadow-sm' 
+                      : 'bg-neutral-900/40 border border-white/5 text-neutral-400 hover:text-white hover:border-neutral-700'
+                  }`}
+                >
+                  <span>Mangas</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/10 text-neutral-300 font-mono">
+                    {mangas.length.toLocaleString()}
+                  </span>
+                </button>
+              </div>
+
+              {/* Status pills + Result counter */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <span className="text-neutral-500 font-semibold mr-1">Estado:</span>
+                  {(['all', 'En emisión', 'Finalizado', 'Próximamente'] as const).map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => setCatalogStatusFilter(st)}
+                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer font-medium ${
+                        catalogStatusFilter === st
+                          ? 'bg-white/15 text-white font-bold border border-white/20'
+                          : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
+                      }`}
+                    >
+                      {st === 'all' ? 'Todos' : st}
+                    </button>
+                  ))}
+                </div>
+
+                <span className="text-xs text-neutral-400 font-medium ml-auto">
+                  <strong className="text-rose-400">{totalItems.toLocaleString()}</strong> títulos
+                </span>
+              </div>
             </div>
 
             {/* URL scraping input form (only for Anime and Movie tabs) */}
@@ -1964,7 +2236,22 @@ export default function AdminPanel() {
                           </td>
                           <td className="py-2.5 px-4">
                             <div className="flex flex-col">
-                              <span className="font-bold text-white max-w-[200px] truncate">{item.title}</span>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-white max-w-[200px] truncate">{item.title}</span>
+                                {(() => {
+                                  const r2 = getR2Info(item);
+                                  if (!r2) return null;
+                                  return (
+                                    <span 
+                                      className="inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/30 shadow-sm"
+                                      title={`Alojado en Cloudflare R2 (${r2.count} episodios listos)`}
+                                    >
+                                      <Cloud className="h-2.5 w-2.5 text-orange-400" />
+                                      Cloudflare R2 ({r2.count})
+                                    </span>
+                                  );
+                                })()}
+                              </div>
                               <span className="text-[10px] text-neutral-500 mt-0.5">
                                 {catalogFilter === 'manga' ? 'Manga' : (item.type || 'Anime')} ({item.year})
                               </span>
@@ -2034,14 +2321,14 @@ export default function AdminPanel() {
                                 <Film className="h-3.5 w-3.5" />
                               </button>
                               <button
-                                onClick={() => setSelectedAnime(item)}
+                                onClick={() => handleOpenEditModal(item)}
                                 className="p-1.5 hover:bg-rose-500/15 text-neutral-400 hover:text-rose-400 rounded-lg transition-colors cursor-pointer inline-flex"
-                                title="Editar contenido"
+                                title="Editar contenido (Netflix Studio)"
                               >
                                 <Edit2 className="h-3.5 w-3.5" />
                               </button>
                               <button
-                                onClick={() => handleDeleteAnime(item.id)}
+                                onClick={() => setAnimeToDelete(item)}
                                 className="p-1.5 hover:bg-rose-500/15 text-neutral-400 hover:text-rose-400 rounded-lg transition-colors cursor-pointer inline-flex"
                                 title="Eliminar contenido"
                               >
@@ -2057,13 +2344,26 @@ export default function AdminPanel() {
 
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-black/20 border-t border-white/5 gap-4 text-xs text-neutral-400">
+                  <div className="flex flex-col lg:flex-row items-center justify-between px-6 py-4 bg-black/20 border-t border-white/5 gap-4 text-xs text-neutral-400">
                     <div>
                       Mostrando <span className="text-white font-semibold">{(currentPage - 1) * itemsPerPage + 1}</span> a{' '}
                       <span className="text-white font-semibold">{Math.min(currentPage * itemsPerPage, totalItems)}</span> de{' '}
-                      <span className="text-white font-semibold">{totalItems}</span> registros
+                      <span className="text-white font-semibold">{totalItems.toLocaleString()}</span> registros{' '}
+                      <span className="text-neutral-500 font-mono">(Pág. {currentPage} de {totalPages})</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
+
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                      {/* First page quick jump */}
+                      <button
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        className="px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5 text-neutral-300 hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                        title="Primera página"
+                      >
+                        «
+                      </button>
+
+                      {/* Previous page */}
                       <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
@@ -2072,28 +2372,45 @@ export default function AdminPanel() {
                         Anterior
                       </button>
                       
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
-                        if (totalPages > 6 && p !== 1 && p !== totalPages && Math.abs(p - currentPage) > 1) {
-                          if (p === 2 || p === totalPages - 1) {
-                            return <span key={p} className="px-1 text-[10px] text-neutral-600">...</span>;
-                          }
-                          return null;
-                        }
-                        return (
-                          <button
-                            key={p}
-                            onClick={() => setCurrentPage(p)}
-                            className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                              currentPage === p
-                                ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/20'
-                                : 'bg-white/5 border border-white/5 text-neutral-400 hover:bg-white/10 hover:text-white'
-                            }`}
-                          >
-                            {p}
-                          </button>
-                        );
-                      })}
+                      {/* Numbered page buttons with smart window */}
+                      {(() => {
+                        const getVisiblePages = (current: number, total: number): (number | string)[] => {
+                          if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+                          const pages: (number | string)[] = [1];
+                          if (current > 3) pages.push('dots-1');
+                          const start = Math.max(2, current - 1);
+                          const end = Math.min(total - 1, current + 1);
+                          for (let i = start; i <= end; i++) pages.push(i);
+                          if (current < total - 2) pages.push('dots-2');
+                          pages.push(total);
+                          return pages;
+                        };
 
+                        return getVisiblePages(currentPage, totalPages).map((p, idx) => {
+                          if (typeof p === 'string') {
+                            return (
+                              <span key={`ellipsis-${idx}`} className="px-1.5 text-neutral-500 font-mono select-none">
+                                ...
+                              </span>
+                            );
+                          }
+                          return (
+                            <button
+                              key={p}
+                              onClick={() => setCurrentPage(p)}
+                              className={`px-3 py-1.5 rounded-lg font-bold font-mono transition-all cursor-pointer ${
+                                currentPage === p
+                                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/20'
+                                  : 'bg-white/5 border border-white/5 text-neutral-400 hover:bg-white/10 hover:text-white'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          );
+                        });
+                      })()}
+
+                      {/* Next page */}
                       <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
@@ -2101,6 +2418,52 @@ export default function AdminPanel() {
                       >
                         Siguiente
                       </button>
+
+                      {/* Last page quick jump */}
+                      <button
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5 text-neutral-300 hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                        title="Última página"
+                      >
+                        »
+                      </button>
+
+                      {/* Direct jump to page input */}
+                      <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-white/10">
+                        <span className="text-neutral-400 text-[11px] whitespace-nowrap">Ir a pág:</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={totalPages}
+                          value={jumpPageInput}
+                          onChange={(e) => setJumpPageInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const p = parseInt(jumpPageInput, 10);
+                              if (!isNaN(p) && p >= 1 && p <= totalPages) {
+                                setCurrentPage(p);
+                                setJumpPageInput('');
+                              }
+                            }
+                          }}
+                          placeholder={`${currentPage}`}
+                          className="w-14 bg-neutral-900 border border-white/10 rounded-lg px-2 py-1 text-center text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-rose-500 font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const p = parseInt(jumpPageInput, 10);
+                            if (!isNaN(p) && p >= 1 && p <= totalPages) {
+                              setCurrentPage(p);
+                              setJumpPageInput('');
+                            }
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition cursor-pointer"
+                        >
+                          Ir
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -2149,133 +2512,538 @@ export default function AdminPanel() {
 
             </div>
 
-            {/* Title individual editor Modal */}
+            {/* ── NETFLIX / CRUNCHYROLL STUDIO EDITOR MODAL ── */}
             {selectedAnime && (
-              <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-                <div className="bg-neutral-950 border border-white/10 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative animate-scale-up">
+              <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 z-50 animate-fade-in overflow-y-auto">
+                <div className="bg-neutral-950 border border-white/15 rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative animate-scale-up my-auto">
+                  
+                  {/* Close button */}
                   <button 
-                    onClick={() => setSelectedAnime(null)}
-                    className="absolute right-4 top-4 hover:bg-white/5 p-1 rounded-lg text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                    onClick={() => { setSelectedAnime(null); setIsCreatingNew(false); }}
+                    className="absolute right-5 top-5 bg-white/5 hover:bg-white/10 p-2 rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer z-10"
+                    title="Cerrar modal"
                   >
                     <X className="h-5 w-5" />
                   </button>
 
-                  <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/5 pb-2.5">
-                    Editar Información del Contenido
-                  </h2>
-
-                  <form onSubmit={handleSaveAnimeEdits} className="space-y-4 text-xs">
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-neutral-400 font-semibold">
-                        {catalogFilter === 'manga' ? 'Título del Manga:' : 'Título del Video:'}
-                      </label>
-                      <input 
-                        type="text" 
-                        value={selectedAnime.title} 
-                        onChange={(e) => setSelectedAnime({ ...selectedAnime, title: e.target.value })}
-                        className="bg-neutral-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
-                        required
-                      />
-                    </div>
-
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-neutral-400 font-semibold">Sinopsis:</label>
-                      <textarea 
-                        value={selectedAnime.synopsis} 
-                        onChange={(e) => setSelectedAnime({ ...selectedAnime, synopsis: e.target.value })}
-                        rows={3}
-                        className="bg-neutral-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 leading-relaxed"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col space-y-1">
-                        <label className="text-neutral-400 font-semibold">Estado:</label>
-                        <select 
-                          value={selectedAnime.status} 
-                          onChange={(e) => setSelectedAnime({ ...selectedAnime, status: e.target.value })}
-                          className="bg-neutral-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
-                        >
-                          <option value="Finalizado">Finalizado</option>
-                          <option value="En emisión">En emisión</option>
-                          <option value="Próximamente">Próximamente</option>
-                        </select>
-                      </div>
-
-                      <div className="flex flex-col space-y-1">
-                        <label className="text-neutral-400 font-semibold">Calificación:</label>
-                        <input 
-                          type="number" 
-                          step="0.1" 
-                          value={selectedAnime.rating} 
-                          onChange={(e) => setSelectedAnime({ ...selectedAnime, rating: parseFloat(e.target.value) || 8.0 })}
-                          className="bg-neutral-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col space-y-1">
-                        <label className="text-neutral-400 font-semibold">Año:</label>
-                        <input 
-                          type="number" 
-                          value={selectedAnime.year} 
-                          onChange={(e) => setSelectedAnime({ ...selectedAnime, year: parseInt(e.target.value) || 2026 })}
-                          className="bg-neutral-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
-                        />
-                      </div>
-
-                      {catalogFilter === 'manga' ? (
-                        <div className="flex flex-col space-y-1">
-                          <label className="text-neutral-400 font-semibold">Capítulos:</label>
-                          <input 
-                            type="number" 
-                            value={selectedAnime.chaptersCount || 0} 
-                            onChange={(e) => setSelectedAnime({ ...selectedAnime, chaptersCount: parseInt(e.target.value) || 0 })}
-                            className="bg-neutral-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex flex-col space-y-1">
-                          <label className="text-neutral-400 font-semibold">Episodios:</label>
-                          <input 
-                            type="number" 
-                            value={selectedAnime.episodesCount || 0} 
-                            onChange={(e) => setSelectedAnime({ ...selectedAnime, episodesCount: parseInt(e.target.value) || 0 })}
-                            className="bg-neutral-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
-                          />
-                        </div>
+                  {/* Modal Header */}
+                  <div className="flex flex-col space-y-2 border-b border-white/10 pb-4 pr-12">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                        isCreatingNew 
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                          : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                      }`}>
+                        {isCreatingNew ? '+ Nuevo Contenido' : 'Editar Contenido'}
+                      </span>
+                      {selectedAnime.id && (
+                        <span className="text-[10px] text-neutral-500 font-mono">
+                          ID: {selectedAnime.id}
+                        </span>
                       )}
                     </div>
+                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight line-clamp-1">
+                      {isCreatingNew ? 'Agregar Nuevo Título al Catálogo' : selectedAnime.title || 'Editar Título'}
+                    </h2>
+                  </div>
 
-                    <div className="flex flex-col space-y-1">
-                      <label className="text-neutral-400 font-semibold">URL de la Portada:</label>
-                      <input 
-                        type="text" 
-                        value={selectedAnime.coverUrl} 
-                        onChange={(e) => setSelectedAnime({ ...selectedAnime, coverUrl: e.target.value })}
-                        className="bg-neutral-900 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
-                      />
+                  {/* Studio Tabs Navigation */}
+                  <div className="flex border-b border-white/10 gap-2 sm:gap-6 text-xs font-bold uppercase tracking-wider">
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('general')}
+                      className={`pb-3 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+                        editorTab === 'general'
+                          ? 'border-rose-500 text-rose-400 font-extrabold'
+                          : 'border-transparent text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      <span>1. Información General</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('images')}
+                      className={`pb-3 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+                        editorTab === 'images'
+                          ? 'border-rose-500 text-rose-400 font-extrabold'
+                          : 'border-transparent text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      <ImageIcon className="h-3.5 w-3.5" />
+                      <span>2. Portadas & Banners</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditorTab('metadata')}
+                      className={`pb-3 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+                        editorTab === 'metadata'
+                          ? 'border-rose-500 text-rose-400 font-extrabold'
+                          : 'border-transparent text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      <span>3. Metadatos & Géneros</span>
+                    </button>
+                  </div>
+
+                  {/* Form Content */}
+                  <form onSubmit={handleSaveAnimeEdits} className="space-y-6 text-xs">
+                    
+                    {/* TAB 1: INFORMACIÓN GENERAL */}
+                    {editorTab === 'general' && (
+                      <div className="space-y-5 animate-fade-in">
+                        {/* Main Title in Spanish */}
+                        <div className="flex flex-col space-y-1.5">
+                          <label className="text-neutral-300 font-bold flex items-center justify-between">
+                            <span>Título Principal (Español / Latino) *</span>
+                            <span className="text-[10px] text-rose-400 font-normal">Obligatorio</span>
+                          </label>
+                          <input 
+                            type="text" 
+                            value={selectedAnime.title} 
+                            onChange={(e) => setSelectedAnime({ ...selectedAnime, title: e.target.value })}
+                            placeholder="Ej: Solo Leveling, One Piece, Kimetsu no Yaiba..."
+                            className="bg-neutral-900/80 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-rose-500 transition-colors placeholder-neutral-600"
+                            required
+                          />
+                        </div>
+
+                        {/* Alternate Titles (English & Romaji) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Título en Inglés</label>
+                            <input 
+                              type="text" 
+                              value={selectedAnime.title_english || ''} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, title_english: e.target.value })}
+                              placeholder="Ej: Attack on Titan, Demon Slayer..."
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 transition-colors placeholder-neutral-600"
+                            />
+                          </div>
+
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Título en Romaji / Japonés</label>
+                            <input 
+                              type="text" 
+                              value={selectedAnime.title_romaji || ''} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, title_romaji: e.target.value })}
+                              placeholder="Ej: Shingeki no Kyojin, Sousou no Frieren..."
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 transition-colors placeholder-neutral-600"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Type & Status selection */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Tipo de Contenido</label>
+                            <div className="grid grid-cols-3 gap-2">
+                              {['Anime', 'Película', 'OVA'].map((t) => (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  onClick={() => {
+                                    const isMovie = t === 'Película';
+                                    setSelectedAnime({
+                                      ...selectedAnime,
+                                      type: t,
+                                      episodesCount: isMovie ? 1 : (selectedAnime.episodesCount && selectedAnime.episodesCount > 1 ? selectedAnime.episodesCount : 12)
+                                    });
+                                  }}
+                                  className={`py-2 rounded-xl font-bold text-center transition-all cursor-pointer ${
+                                    selectedAnime.type === t
+                                      ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                                      : 'bg-neutral-900 border border-white/5 text-neutral-400 hover:text-white'
+                                  }`}
+                                >
+                                  {t}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Estado de Emisión</label>
+                            <select 
+                              value={selectedAnime.status} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, status: e.target.value })}
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 cursor-pointer"
+                            >
+                              <option value="En emisión">En emisión</option>
+                              <option value="Finalizado">Finalizado</option>
+                              <option value="Próximamente">Próximamente</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Synopsis */}
+                        <div className="flex flex-col space-y-1.5">
+                          <label className="text-neutral-400 font-semibold">Sinopsis / Descripción</label>
+                          <textarea 
+                            value={selectedAnime.synopsis} 
+                            onChange={(e) => setSelectedAnime({ ...selectedAnime, synopsis: e.target.value })}
+                            rows={4}
+                            placeholder="Escribe la trama o descripción del contenido..."
+                            className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rose-500 leading-relaxed placeholder-neutral-600"
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TAB 2: PORTADAS Y BANNERS (CON LIVE PREVIEW ESTILO NETFLIX) */}
+                    {editorTab === 'images' && (
+                      <div className="space-y-6 animate-fade-in">
+                        
+                        {/* AniList Auto-fill helper */}
+                        <div className="bg-gradient-to-r from-purple-950/40 via-neutral-900/60 to-rose-950/30 border border-purple-500/20 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div className="flex flex-col space-y-0.5">
+                            <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                              <Sparkles className="h-4 w-4 text-purple-400" />
+                              Autocompletar Imágenes desde AniList
+                            </span>
+                            <span className="text-[10px] text-neutral-400">
+                              Busca automáticamente portadas y banners oficiales en HD según el título escrito.
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={isSuggestingMedia}
+                            onClick={handleSuggestFromAniList}
+                            className="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-lg shadow-purple-600/25 whitespace-nowrap self-start sm:self-auto disabled:opacity-50"
+                          >
+                            {isSuggestingMedia ? (
+                              <>
+                                <div className="h-3 w-3 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                                <span>Buscando...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3.5 w-3.5" />
+                                <span>Buscar en AniList</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Interactive Dual Live Preview Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                          
+                          {/* 1. Vertical Poster Section */}
+                          <div className="space-y-3 bg-neutral-900/40 border border-white/5 rounded-2xl p-4">
+                            <label className="text-neutral-300 font-bold block">
+                              1. Póster Vertical (Portada Oficial)
+                            </label>
+                            
+                            <input 
+                              type="url" 
+                              value={selectedAnime.coverUrl} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, coverUrl: e.target.value })}
+                              placeholder="https://s4.anilist.co/... o https://tioanime.com/..."
+                              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-rose-500 transition-colors"
+                              required
+                            />
+
+                            {/* Poster Live Preview */}
+                            <div className="flex flex-col items-center justify-center p-3 bg-black/40 rounded-xl border border-white/5">
+                              <div className="relative w-36 aspect-[3/4] rounded-xl overflow-hidden shadow-2xl border border-white/10 group">
+                                <img 
+                                  src={selectedAnime.coverUrl || "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300"} 
+                                  alt="Preview Cover"
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  referrerPolicy="no-referrer"
+                                  onError={(e) => {
+                                    (e.target as any).src = "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300";
+                                  }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-2.5">
+                                  <span className="text-[10px] font-bold text-white line-clamp-1">{selectedAnime.title || 'Título'}</span>
+                                  <span className="text-[9px] text-neutral-400">{selectedAnime.year} • {selectedAnime.type}</span>
+                                </div>
+                              </div>
+                              <span className="text-[10px] text-neutral-500 mt-2">Vista previa de tarjeta en Catálogo e Inicio</span>
+                            </div>
+                          </div>
+
+                          {/* 2. Horizontal Banner Section */}
+                          <div className="space-y-3 bg-neutral-900/40 border border-white/5 rounded-2xl p-4">
+                            <label className="text-neutral-300 font-bold block">
+                              2. Banner Panorámico (Hero & Reproductor)
+                            </label>
+
+                            <input 
+                              type="url" 
+                              value={selectedAnime.bannerUrl || ''} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, bannerUrl: e.target.value })}
+                              placeholder="https://... (URL horizontal de fondo)"
+                              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-rose-500 transition-colors"
+                            />
+
+                            {/* Banner Live Preview */}
+                            <div className="flex flex-col items-center justify-center p-3 bg-black/40 rounded-xl border border-white/5">
+                              <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10">
+                                <img 
+                                  src={selectedAnime.bannerUrl || selectedAnime.coverUrl || "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600"} 
+                                  alt="Preview Banner"
+                                  className="w-full h-full object-cover brightness-75"
+                                  referrerPolicy="no-referrer"
+                                  onError={(e) => {
+                                    (e.target as any).src = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600";
+                                  }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3">
+                                  <span className="text-xs font-black text-white line-clamp-1">{selectedAnime.title || 'Título'}</span>
+                                  <span className="text-[10px] text-rose-400 font-semibold">Banner de fondo en detalle</span>
+                                </div>
+                              </div>
+                              <span className="text-[10px] text-neutral-500 mt-2">Vista previa de cabecera panorámica</span>
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TAB 3: METADATOS Y GÉNEROS */}
+                    {editorTab === 'metadata' && (
+                      <div className="space-y-6 animate-fade-in">
+                        
+                        {/* Interactive Genre Chips */}
+                        <div className="space-y-2">
+                          <label className="text-neutral-300 font-bold block">
+                            Géneros y Categorías (Haz clic para seleccionar o deseleccionar):
+                          </label>
+                          <div className="flex flex-wrap gap-1.5 p-3.5 bg-neutral-900/60 rounded-2xl border border-white/5 max-h-48 overflow-y-auto">
+                            {[
+                              "Acción", "Aventura", "Comedia", "Drama", "Fantasía", "Ciencia Ficción", 
+                              "Romance", "Sobrenatural", "Misterio", "Psicológico", "Shounen", "Seinen", 
+                              "Isekai", "Recuentos de la vida", "Deportes", "Terror", "Mecha", "Magia"
+                            ].map((g) => {
+                              const isSelected = (selectedAnime.genres || []).includes(g);
+                              return (
+                                <button
+                                  key={g}
+                                  type="button"
+                                  onClick={() => handleToggleGenre(g)}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                    isSelected
+                                      ? 'bg-rose-500 text-white shadow-md shadow-rose-500/25 border border-rose-400'
+                                      : 'bg-neutral-800/60 border border-white/5 text-neutral-400 hover:text-white hover:border-neutral-700'
+                                  }`}
+                                >
+                                  {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                  <span>{g}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <span className="text-[10px] text-neutral-500">
+                            Seleccionados actualmente: {(selectedAnime.genres || []).join(", ") || "Ninguno"}
+                          </span>
+                        </div>
+
+                        {/* Numbers Grid: Year, Rating, Episodes */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Año de Estreno</label>
+                            <input 
+                              type="number" 
+                              value={selectedAnime.year} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, year: parseInt(e.target.value) || 2026 })}
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
+                            />
+                          </div>
+
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Calificación (1.0 - 10.0)</label>
+                            <input 
+                              type="number" 
+                              step="0.1" 
+                              min="1" 
+                              max="10"
+                              value={selectedAnime.rating} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, rating: parseFloat(e.target.value) || 8.0 })}
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
+                            />
+                          </div>
+
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">
+                              {selectedAnime.type === 'Película' ? 'Episodios (Película)' : catalogFilter === 'manga' ? 'Capítulos' : 'Episodios'}
+                            </label>
+                            <input 
+                              type="number" 
+                              disabled={selectedAnime.type === 'Película'}
+                              value={selectedAnime.type === 'Película' ? 1 : (selectedAnime.episodesCount || 12)} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, episodesCount: parseInt(e.target.value) || 12 })}
+                              className="bg-neutral-900 disabled:opacity-50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* ID slug preview / customization */}
+                        <div className="flex flex-col space-y-1.5">
+                          <label className="text-neutral-400 font-semibold">Identificador / Slug único</label>
+                          <input 
+                            type="text" 
+                            value={selectedAnime.id} 
+                            onChange={(e) => setSelectedAnime({ ...selectedAnime, id: e.target.value })}
+                            placeholder={isCreatingNew ? "tioanime-[se generará automáticamente si lo dejas vacío]" : "ID del contenido"}
+                            className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-rose-500 placeholder-neutral-600"
+                          />
+                        </div>
+
+                      </div>
+                    )}
+
+                    {/* Modal Footer Controls */}
+                    <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                      <div className="flex gap-2">
+                        {editorTab !== 'general' && (
+                          <button
+                            type="button"
+                            onClick={() => setEditorTab(editorTab === 'metadata' ? 'images' : 'general')}
+                            className="bg-white/5 hover:bg-white/10 text-neutral-300 font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors"
+                          >
+                            ← Anterior
+                          </button>
+                        )}
+                        {editorTab !== 'metadata' && (
+                          <button
+                            type="button"
+                            onClick={() => setEditorTab(editorTab === 'general' ? 'images' : 'metadata')}
+                            className="bg-white/10 hover:bg-white/15 text-white font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors"
+                          >
+                            Siguiente →
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <button 
+                          type="button" 
+                          onClick={() => { setSelectedAnime(null); setIsCreatingNew(false); }}
+                          className="bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                        <button 
+                          type="submit" 
+                          disabled={isSavingCatalog}
+                          className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold px-6 py-2.5 rounded-xl cursor-pointer transition-all flex items-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 disabled:opacity-50"
+                        >
+                          {isSavingCatalog ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                              <span>Guardando en Catálogo...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4" />
+                              <span>{isCreatingNew ? 'Publicar en Catálogo' : 'Guardar Cambios'}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-3 border-t border-white/5">
-                      <button 
-                        type="button" 
-                        onClick={() => setSelectedAnime(null)}
-                        className="bg-white/5 hover:bg-white/10 text-neutral-300 font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors"
-                      >
-                        Cancelar
-                      </button>
-                      <button 
-                        type="submit" 
-                        className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-5 py-2.5 rounded-xl cursor-pointer transition-colors flex items-center gap-1.5 shadow-lg shadow-rose-500/25"
-                      >
-                        <Save className="h-4 w-4" />
-                        <span>Guardar Cambios</span>
-                      </button>
-                    </div>
                   </form>
+                </div>
+              </div>
+            )}
+
+            {/* ── NETFLIX DELETION SAFEGUARD CONFIRMATION MODAL ── */}
+            {animeToDelete && (
+              <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+                <div className="bg-neutral-950 border border-rose-500/30 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative animate-scale-up">
+                  
+                  {/* Warning Header */}
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-500 shrink-0">
+                      <AlertTriangle className="h-5 w-5 stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-rose-400">Eliminación Permanente</span>
+                      <h3 className="text-base font-extrabold text-white">¿Eliminar del Catálogo?</h3>
+                    </div>
+                  </div>
+
+                  {/* Target Card Preview */}
+                  <div className="flex items-center gap-3.5 p-3.5 bg-neutral-900/80 border border-white/5 rounded-2xl">
+                    <img 
+                      src={animeToDelete.coverUrl} 
+                      alt={animeToDelete.title} 
+                      className="h-16 w-12 object-cover rounded-xl shadow-md shrink-0"
+                      onError={(e) => { (e.target as any).src = "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=100"; }}
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-bold text-white truncate">{animeToDelete.title}</span>
+                      <span className="text-[11px] text-neutral-400 mt-0.5">
+                        {animeToDelete.type || 'Anime'} ({animeToDelete.year}) • {animeToDelete.status}
+                      </span>
+                      <span className="text-[10px] text-neutral-500 font-mono truncate mt-0.5">
+                        ID: {animeToDelete.id}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Esta acción eliminará permanentemente a <strong className="text-white">"{animeToDelete.title}"</strong> de la base de datos de MegaAnime (`catalog.json`) y desaparecerá de Inicio, Películas y Búsqueda.
+                  </p>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      disabled={isDeletingCatalog}
+                      onClick={() => setAnimeToDelete(null)}
+                      className="bg-white/5 hover:bg-white/10 text-neutral-300 font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors text-xs"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isDeletingCatalog}
+                      onClick={handleConfirmDelete}
+                      className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-5 py-2.5 rounded-xl cursor-pointer transition-all flex items-center gap-2 shadow-lg shadow-rose-600/30 text-xs disabled:opacity-50"
+                    >
+                      {isDeletingCatalog ? (
+                        <>
+                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                          <span>Eliminando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-3.5 w-3.5" />
+                          <span>Eliminar Definitivamente</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* ── TOAST NOTIFICATION POPUP ── */}
+            {toastMessage && (
+              <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
+                <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border backdrop-blur-md ${
+                  toastMessage.type === 'success' 
+                    ? 'bg-neutral-900/95 border-emerald-500/40 text-white' 
+                    : 'bg-neutral-900/95 border-rose-500/40 text-white'
+                }`}>
+                  {toastMessage.type === 'success' ? (
+                    <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+                  )}
+                  <span className="text-xs font-semibold">{toastMessage.text}</span>
+                  <button 
+                    onClick={() => setToastMessage(null)}
+                    className="text-neutral-400 hover:text-white p-1 ml-2 transition-colors cursor-pointer"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             )}
@@ -3076,8 +3844,20 @@ export default function AdminPanel() {
                 alt="cover"
               />
               <div>
-                <span className="text-[9px] bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded uppercase">Gestor de Episodios</span>
-                <h3 className="text-base font-bold text-white leading-tight">{selectedAnimeForEpisodes.title}</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] bg-rose-500/20 text-rose-300 font-bold px-2 py-0.5 rounded uppercase">Gestor de Episodios</span>
+                  {(() => {
+                    const r2 = getR2Info(selectedAnimeForEpisodes);
+                    if (!r2) return null;
+                    return (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/30">
+                        <Cloud className="h-2.5 w-2.5" />
+                        Cloudflare R2 ({r2.count} caps)
+                      </span>
+                    );
+                  })()}
+                </div>
+                <h3 className="text-base font-bold text-white leading-tight mt-0.5">{selectedAnimeForEpisodes.title}</h3>
                 <p className="text-xs text-neutral-400">Episodios totales: {selectedAnimeForEpisodes.episodesCount || 12}</p>
               </div>
             </div>
@@ -3086,21 +3866,67 @@ export default function AdminPanel() {
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-white">Selecciona Episodio:</label>
                 <div className="flex items-center gap-1.5 overflow-x-auto max-w-md py-1">
-                  {Array.from({ length: selectedAnimeForEpisodes.episodesCount || 12 }, (_, i) => i + 1).map((epNum) => (
-                    <button
-                      key={epNum}
-                      onClick={() => setSelectedEpNum(epNum)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                        selectedEpNum === epNum 
-                          ? "bg-rose-600 text-white shadow-lg shadow-rose-600/20" 
-                          : "bg-neutral-800 text-neutral-400 hover:text-white"
-                      }`}
-                    >
-                      EP {epNum}
-                    </button>
-                  ))}
+                  {Array.from({ length: selectedAnimeForEpisodes.episodesCount || 12 }, (_, i) => i + 1).map((epNum) => {
+                    const epKey = `ep-${epNum}`;
+                    let isEpInR2 = false;
+                    if (r2Manifest) {
+                      const entry = r2Manifest[selectedAnimeForEpisodes.id]
+                        || r2Manifest[`tioanime-${selectedAnimeForEpisodes.id}`]
+                        || (selectedAnimeForEpisodes.id.includes("bleach") ? (r2Manifest["tioanime-bleach-sennen-kessenhen"] || r2Manifest["bleach-sennen-kessen-hen"]) : null);
+                      if (entry && entry.episodes && entry.episodes[epKey]) {
+                        isEpInR2 = true;
+                      }
+                    }
+                    return (
+                      <button
+                        key={epNum}
+                        onClick={() => setSelectedEpNum(epNum)}
+                        className={`relative px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          selectedEpNum === epNum 
+                            ? "bg-rose-600 text-white shadow-lg shadow-rose-600/20" 
+                            : "bg-neutral-800 text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        EP {epNum}
+                        {isEpInR2 && (
+                          <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-orange-400 ring-2 ring-neutral-900" title="Alojado en Cloudflare R2" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+
+              {/* Cloudflare Direct Stream Notice */}
+              {(() => {
+                const epKey = `ep-${selectedEpNum}`;
+                let r2Url = null;
+                if (r2Manifest) {
+                  const entry = r2Manifest[selectedAnimeForEpisodes.id] 
+                    || r2Manifest[`tioanime-${selectedAnimeForEpisodes.id}`]
+                    || (selectedAnimeForEpisodes.id.includes("bleach") ? (r2Manifest["tioanime-bleach-sennen-kessenhen"] || r2Manifest["bleach-sennen-kessen-hen"]) : null);
+                  if (entry && entry.episodes && entry.episodes[epKey]) {
+                    r2Url = entry.episodes[epKey].url;
+                  }
+                }
+                if (!r2Url) return null;
+                return (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Cloud className="h-4 w-4 shrink-0 text-orange-400" />
+                      <div className="min-w-0">
+                        <span className="font-bold block text-white">⚡ Servidor Oficial MegaAnime PRO (Cloudflare R2)</span>
+                        <a href={r2Url} target="_blank" rel="noreferrer" className="text-[11px] text-orange-300 hover:underline flex items-center gap-1 font-mono mt-0.5 truncate">
+                          {r2Url} <ExternalLink className="h-2.5 w-2.5 inline shrink-0" />
+                        </a>
+                      </div>
+                    </div>
+                    <span className="text-[10px] bg-orange-500/20 text-orange-300 font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ml-2">
+                      Ultra HD
+                    </span>
+                  </div>
+                );
+              })()}
 
               {/* Form to Add Custom Video Server */}
               <div className="bg-black/30 border border-white/5 rounded-xl p-4 space-y-3">
