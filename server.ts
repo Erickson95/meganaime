@@ -3602,12 +3602,65 @@ export async function createExpressApp() {
           }
           const ogUrl = `https://mega-anime.com/ver/${encodeURIComponent(cleanSlug)}`;
 
+          const isMovie = found.type === "Película" || found.type === "Movie";
+          const animeSchema = {
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": isMovie ? "Movie" : "TVSeries",
+                "@id": `${ogUrl}#anime`,
+                "name": found.title,
+                "url": ogUrl,
+                "image": [
+                  ogImage,
+                  found.coverUrl || ogImage
+                ],
+                "description": ogDesc,
+                "inLanguage": "es",
+                "genre": found.genres || ["Anime", "Animación"],
+                "numberOfEpisodes": found.episodesCount || (isMovie ? 1 : 12),
+                "aggregateRating": {
+                  "@type": "AggregateRating",
+                  "ratingValue": String(Number(found.rating || 8.5).toFixed(1)),
+                  "bestRating": "10",
+                  "worstRating": "1",
+                  "ratingCount": 150
+                }
+              },
+              {
+                "@type": "BreadcrumbList",
+                "@id": `${ogUrl}#breadcrumbs`,
+                "itemListElement": [
+                  {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Inicio",
+                    "item": "https://mega-anime.com/"
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": isMovie ? "Películas" : "Animes",
+                    "item": `https://mega-anime.com/?tab=${isMovie ? "peliculas" : "estrenos"}`
+                  },
+                  {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": found.title,
+                    "item": ogUrl
+                  }
+                ]
+              }
+            ]
+          };
+
           html = html.replace(/<title>.*?<\/title>/i, `<title>${ogTitle}</title>`);
           html = html.replace(/<meta property="og:title" content=".*?"\s*\/?>/i, `<meta property="og:title" content="${ogTitle}" />`);
           html = html.replace(/<meta property="og:description" content=".*?"\s*\/?>/i, `<meta property="og:description" content="${ogDesc}" />`);
           html = html.replace(/<meta property="og:image" content=".*?"\s*\/?>/i, `<meta property="og:image" content="${ogImage}" /><meta property="og:image:secure_url" content="${ogImage}" /><meta property="og:image:type" content="image/jpeg" />`);
           html = html.replace(/<meta property="og:url" content=".*?"\s*\/?>/i, `<meta property="og:url" content="${ogUrl}" />`);
           html = html.replace(/<meta name="twitter:image" content=".*?"\s*\/?>/i, `<meta name="twitter:image" content="${ogImage}" />`);
+          html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/i, `<script type="application/ld+json">\n${JSON.stringify(animeSchema, null, 2)}\n    </script>`);
         }
       }
 

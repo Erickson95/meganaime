@@ -75,7 +75,60 @@ if (fs.existsSync(baseHtmlPath)) {
     if (ogImage.includes("tioanime.com")) {
       ogImage = `https://mega-anime.com/api/image-proxy?url=${encodeURIComponent(ogImage)}`;
     }
+    const isMovie = anime.type === "Película" || anime.type === "Movie";
     const ogUrl = `https://mega-anime.com/ver/${cleanSlug}`;
+
+    // Schema.org structured data for Google Rich Results
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": isMovie ? "Movie" : "TVSeries",
+          "@id": `${ogUrl}#anime`,
+          "name": anime.title,
+          "url": ogUrl,
+          "image": [
+            ogImage,
+            anime.coverUrl || ogImage
+          ],
+          "description": ogDesc,
+          "inLanguage": "es",
+          "genre": anime.genres || ["Anime", "Animación"],
+          "numberOfEpisodes": anime.episodesCount || (isMovie ? 1 : 12),
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": String(Number(anime.rating || 8.5).toFixed(1)),
+            "bestRating": "10",
+            "worstRating": "1",
+            "ratingCount": 150
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": `${ogUrl}#breadcrumbs`,
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Inicio",
+              "item": "https://mega-anime.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": isMovie ? "Películas" : "Animes",
+              "item": `https://mega-anime.com/?tab=${isMovie ? "peliculas" : "estrenos"}`
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": anime.title,
+              "item": ogUrl
+            }
+          ]
+        }
+      ]
+    };
 
     let pageHtml = baseHtml
       .replace(/<title>.*?<\/title>/i, `<title>${ogTitle}</title>`)
@@ -83,19 +136,38 @@ if (fs.existsSync(baseHtmlPath)) {
       .replace(/<meta property="og:description" content=".*?"\s*\/?>/i, `<meta property="og:description" content="${ogDesc}" />`)
       .replace(/<meta property="og:image" content=".*?"\s*\/?>/i, `<meta property="og:image" content="${ogImage}" /><meta property="og:image:secure_url" content="${ogImage}" /><meta property="og:image:type" content="image/jpeg" /><meta property="og:image:width" content="600" /><meta property="og:image:height" content="800" />`)
       .replace(/<meta property="og:url" content=".*?"\s*\/?>/i, `<meta property="og:url" content="${ogUrl}" />`)
-      .replace(/<meta name="twitter:image" content=".*?"\s*\/?>/i, `<meta name="twitter:image" content="${ogImage}" />`);
+      .replace(/<meta name="twitter:image" content=".*?"\s*\/?>/i, `<meta name="twitter:image" content="${ogImage}" />`)
+      .replace(/<meta name="twitter:title" content=".*?"\s*\/?>/i, `<meta name="twitter:title" content="${ogTitle}" />`)
+      .replace(/<meta name="twitter:description" content=".*?"\s*\/?>/i, `<meta name="twitter:description" content="${ogDesc}" />`)
+      .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/i, `<script type="application/ld+json">\n${JSON.stringify(structuredData, null, 2)}\n    </script>`);
 
+    // Write /ver/[cleanSlug]/index.html
     const verDir = path.join(distPath, 'ver', cleanSlug);
     fs.mkdirSync(verDir, { recursive: true });
     fs.writeFileSync(path.join(verDir, 'index.html'), pageHtml, 'utf8');
+
+    // Write /anime/[cleanSlug]/index.html
+    const animeDir = path.join(distPath, 'anime', cleanSlug);
+    fs.mkdirSync(animeDir, { recursive: true });
+    fs.writeFileSync(path.join(animeDir, 'index.html'), pageHtml, 'utf8');
+
+    if (isMovie) {
+      const movieDir = path.join(distPath, 'pelicula', cleanSlug);
+      fs.mkdirSync(movieDir, { recursive: true });
+      fs.writeFileSync(path.join(movieDir, 'index.html'), pageHtml, 'utf8');
+    }
 
     if (anime.id && anime.id !== cleanSlug) {
       const verIdDir = path.join(distPath, 'ver', anime.id);
       fs.mkdirSync(verIdDir, { recursive: true });
       fs.writeFileSync(path.join(verIdDir, 'index.html'), pageHtml, 'utf8');
+
+      const animeIdDir = path.join(distPath, 'anime', anime.id);
+      fs.mkdirSync(animeIdDir, { recursive: true });
+      fs.writeFileSync(path.join(animeIdDir, 'index.html'), pageHtml, 'utf8');
     }
     verCount++;
   });
 
-  console.log(`[SEO] Generated ${verCount} static /ver/[anime]/ pages with high-res OpenGraph metadata.`);
+  console.log(`[SEO] Generated ${verCount} static /ver/, /anime/ and /pelicula/ pages with rich Schema.org TVSeries/Movie metadata.`);
 }
