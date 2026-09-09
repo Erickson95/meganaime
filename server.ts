@@ -3596,16 +3596,31 @@ export async function createExpressApp() {
         if (found) {
           const ogTitle = `${found.title} - Ver Online en HD | megaAnime`;
           const ogDesc = found.synopsis ? found.synopsis.slice(0, 200) + "..." : `Disfruta de ${found.title} en HD en megaAnime.`;
-          let ogImage = found.coverUrl || "https://mega-anime.com/banner-preview.jpg";
-          if (ogImage.includes("tioanime.com")) {
-            ogImage = `https://mega-anime.com/api/image-proxy?url=${encodeURIComponent(ogImage)}`;
-          }
+          const directCover = found.coverUrl || "https://mega-anime.com/banner-preview.jpg";
+          const ogImage = directCover;
           const ogUrl = `https://mega-anime.com/ver/${encodeURIComponent(cleanSlug)}`;
 
           const isMovie = found.type === "Película" || found.type === "Movie";
           const animeSchema = {
             "@context": "https://schema.org",
             "@graph": [
+              {
+                "@type": "VideoObject",
+                "@id": `${ogUrl}#video`,
+                "name": `${found.title} - Ver Online en Sub Español y Latino HD`,
+                "description": ogDesc,
+                "thumbnailUrl": [
+                  directCover,
+                  "https://mega-anime.com/banner-preview.jpg"
+                ],
+                "uploadDate": `${found.year || 2024}-01-01T00:00:00Z`,
+                "contentUrl": ogUrl,
+                "embedUrl": ogUrl,
+                "potentialAction": {
+                  "@type": "WatchAction",
+                  "target": ogUrl
+                }
+              },
               {
                 "@type": isMovie ? "Movie" : "TVSeries",
                 "@id": `${ogUrl}#anime`,

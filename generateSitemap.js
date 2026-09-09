@@ -71,10 +71,8 @@ if (fs.existsSync(baseHtmlPath)) {
 
     const ogTitle = `${anime.title} - Ver Online en HD | megaAnime`;
     const ogDesc = anime.synopsis ? anime.synopsis.slice(0, 200) + "..." : `Disfruta de ${anime.title} en calidad Full HD 1080p sin anuncios en megaAnime.`;
-    let ogImage = anime.coverUrl || "https://mega-anime.com/icon-512.png";
-    if (ogImage.includes("tioanime.com")) {
-      ogImage = `https://mega-anime.com/api/image-proxy?url=${encodeURIComponent(ogImage)}`;
-    }
+    const directCover = anime.coverUrl || "https://mega-anime.com/banner-preview.jpg";
+    const ogImage = directCover;
     const isMovie = anime.type === "Película" || anime.type === "Movie";
     const ogUrl = `https://mega-anime.com/ver/${cleanSlug}`;
 
@@ -83,13 +81,30 @@ if (fs.existsSync(baseHtmlPath)) {
       "@context": "https://schema.org",
       "@graph": [
         {
+          "@type": "VideoObject",
+          "@id": `${ogUrl}#video`,
+          "name": `${anime.title} - Ver Online en Sub Español y Latino HD`,
+          "description": ogDesc,
+          "thumbnailUrl": [
+            directCover,
+            "https://mega-anime.com/banner-preview.jpg"
+          ],
+          "uploadDate": `${anime.year || 2024}-01-01T00:00:00Z`,
+          "contentUrl": ogUrl,
+          "embedUrl": ogUrl,
+          "potentialAction": {
+            "@type": "WatchAction",
+            "target": ogUrl
+          }
+        },
+        {
           "@type": isMovie ? "Movie" : "TVSeries",
           "@id": `${ogUrl}#anime`,
           "name": anime.title,
           "url": ogUrl,
           "image": [
-            ogImage,
-            anime.coverUrl || ogImage
+            directCover,
+            "https://mega-anime.com/banner-preview.jpg"
           ],
           "description": ogDesc,
           "inLanguage": "es",
