@@ -3596,7 +3596,7 @@ export async function createExpressApp() {
         if (found) {
           const ogTitle = `${found.title} - Ver Online en HD | megaAnime`;
           const ogDesc = found.synopsis ? found.synopsis.slice(0, 200) + "..." : `Disfruta de ${found.title} en HD en megaAnime.`;
-          let ogImage = found.coverUrl || "https://mega-anime.com/icon-512.png";
+          let ogImage = found.coverUrl || "https://mega-anime.com/banner-preview.jpg";
           if (ogImage.includes("tioanime.com")) {
             ogImage = `https://mega-anime.com/api/image-proxy?url=${encodeURIComponent(ogImage)}`;
           }

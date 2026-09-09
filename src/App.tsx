@@ -374,7 +374,7 @@ function AppContent() {
     } else if (selectedAnime) {
       document.title = `${selectedAnime.title} | megaAnime`;
     } else {
-      document.title = "megaAnime - Tu Portal de Anime de Alta Calidad";
+      document.title = "megaAnime - Ver Anime Online Gratis en Sub Español y Latino HD";
     }
   }, [selectedAnime, activeEpisodeId]);
 
