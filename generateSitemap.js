@@ -43,8 +43,16 @@ if (!fs.existsSync(distPath)) {
   fs.mkdirSync(distPath, { recursive: true });
 }
 
-fs.writeFileSync(sitemapPath, urlsXml, 'utf8');
-console.log(`[SEO] Successfully generated dist/sitemap.xml with ${catalog.length + 1} URLs.`);
+const publicSitemapPath = path.join(process.cwd(), 'public/sitemap.xml');
+if (fs.existsSync(publicSitemapPath)) {
+  fs.copyFileSync(publicSitemapPath, sitemapPath);
+  console.log(`[SEO] Preserved custom public/sitemap.xml to dist/sitemap.xml`);
+  fs.writeFileSync(path.join(distPath, 'sitemap-catalog.xml'), urlsXml, 'utf8');
+  console.log(`[SEO] Successfully generated dist/sitemap-catalog.xml with ${catalog.length + 1} URLs.`);
+} else {
+  fs.writeFileSync(sitemapPath, urlsXml, 'utf8');
+  console.log(`[SEO] Successfully generated dist/sitemap.xml with ${catalog.length + 1} URLs.`);
+}
 
 // Pre-render static /ver/[clean-slug]/index.html for every anime with exact OpenGraph tags
 const baseHtmlPath = path.join(distPath, 'index.html');

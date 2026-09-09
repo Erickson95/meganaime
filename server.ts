@@ -512,6 +512,28 @@ export async function createExpressApp() {
     res.send(`User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin\n\nSitemap: https://mega-anime.com/sitemap.xml\n`);
   });
 
+  // ── XML Sitemap Handler (Root & API) ──
+  app.get(["/sitemap.xml", "/api/sitemap.xml"], (req, res) => {
+    res.header("Content-Type", "application/xml; charset=utf-8");
+    const sitemapPublic = path.join(process.cwd(), "public/sitemap.xml");
+    const sitemapDist = path.join(process.cwd(), "dist/sitemap.xml");
+    if (fs.existsSync(sitemapPublic)) {
+      return res.send(fs.readFileSync(sitemapPublic, "utf-8"));
+    }
+    if (fs.existsSync(sitemapDist)) {
+      return res.send(fs.readFileSync(sitemapDist, "utf-8"));
+    }
+    return res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://mega-anime.com/</loc>
+    <lastmod>${new Date().toISOString().split("T")[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
+  });
+
   // ── 0. OTP Email Verification Endpoints for Registration ──
   app.post("/api/auth/send-otp", async (req, res) => {
     const email = (req.body?.email as string || "").toLowerCase().trim();
@@ -3542,35 +3564,6 @@ export async function createExpressApp() {
       appType: "spa",
     });
     app.use(vite.middlewares);
-    // ── Dynamic XML Sitemap for Googlebot ──
-    app.get(["/sitemap.xml", "/api/sitemap.xml"], (req, res) => {
-      res.header("Content-Type", "application/xml");
-      const todayStr = new Date().toISOString().split("T")[0];
-      const catalog = getAnimesWithEpisodes() || [];
-
-      let urlsXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://mega-anime.com/</loc>
-    <lastmod>${todayStr}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>`;
-
-      catalog.forEach(anime => {
-        const cleanId = encodeURIComponent(anime.id);
-        urlsXml += `
-  <url>
-    <loc>https://mega-anime.com/anime/${cleanId}</loc>
-    <lastmod>${todayStr}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`;
-      });
-
-      urlsXml += `\n</urlset>`;
-      res.send(urlsXml);
-    });
 
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath, { setHeaders: (res, filePath) => { if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate'); } }));
