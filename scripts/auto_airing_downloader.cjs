@@ -63,8 +63,8 @@ const FB_TOKEN = envVars.FACEBOOK_PAGE_ACCESS_TOKEN || "";
 const FB_PAGE_ID = envVars.FACEBOOK_PAGE_ID || "1375353446122077";
 
 const RCLONE_FLAGS = GDRIVE_CID && GDRIVE_SEC
-  ? `--drive-client-id "${GDRIVE_CID}" --drive-client-secret "${GDRIVE_SEC}" --drive-chunk-size 64M --drive-upload-cutoff 64M`
-  : "";
+  ? `--drive-client-id "${GDRIVE_CID}" --drive-client-secret "${GDRIVE_SEC}" --drive-chunk-size 64M --drive-upload-cutoff 64M --timeout 45s --contimeout 20s --retries 3 --low-level-retries 10`
+  : "--timeout 45s --contimeout 20s --retries 3 --low-level-retries 10";
 
 // ── 2. Manifest Helpers ──
 function getDriveManifest() {
@@ -139,7 +139,7 @@ function updateManifestEntry(animeKey, epNum, fileInfo, animeTitle, relativePath
   }
 }
 
-// ── 3. Facebook Auto-Poster ──
+// ── 3. Facebook Auto-Poster (Full HD Photo Upload) ──
 async function postEpisodeToFacebook(animeTitle, epNum, animeKey) {
   if (!FB_TOKEN || !FB_PAGE_ID) return;
 
@@ -157,39 +157,89 @@ async function postEpisodeToFacebook(animeTitle, epNum, animeKey) {
   }
 
   const cleanSlug = animeKey.replace(/^tioanime-/, "");
-  const webUrl = `https://mega-anime.com/anime/${cleanSlug}`;
+  const webUrl = `https://mega-anime.com/ver/${cleanSlug}?ep=${epNum}`;
   const hashtag = animeTitle.replace(/[^a-zA-Z0-9]/g, "");
+
+  // Find cover in catalog
+  let coverUrl = null;
+  let genresText = "";
+  try {
+    const cPath = fs.existsSync(CATALOG_SRC) ? CATALOG_SRC : CATALOG_DIST;
+    if (fs.existsSync(cPath)) {
+      const catalog = JSON.parse(fs.readFileSync(cPath, "utf-8"));
+      const found = catalog.find(c => c.id === animeKey || c.id === cleanSlug || c.title === animeTitle);
+      if (found) {
+        coverUrl = found.coverUrl;
+        if (found.genres && found.genres.length > 0) {
+          genresText = `\n⭐ Géneros: ${found.genres.join(", ")}`;
+        }
+      }
+    }
+  } catch (e) {}
 
   const caption = `🔥 ¡YA DISPONIBLE EN megaAnime SIN ANUNCIOS! 🔥\n\n` +
     `🎬 Anime: ${animeTitle}\n` +
-    `📺 Capítulo ${epNum}\n` +
-    `⚡ Servidor Exclusivo MegaAnime (1080p Ultra HD)\n\n` +
+    `📺 Capítulo ${epNum}${genresText}\n` +
+    `⚡ Servidor Exclusivo MegaAnime PRO HD (1080p Ultra HD)\n\n` +
     `🍿 ¡Disfrútalo ahora mismo en FULL HD nativo, sin anuncios molestos y con la máxima velocidad de streaming!\n\n` +
     `🌐 Ver Directo Aquí:\n${webUrl}\n\n` +
-    `#megaAnime #AnimeEnEspañol #${hashtag} #EstrenoAnime #Otaku #AnimeHD`;
+    `#megaAnime #AnimeEnEspañol #${hashtag} #EstrenoAnime #Otaku #AnimeHD #AnimeOnline`;
 
-  console.log(`[Facebook] Posting new release: ${animeTitle} Ep ${epNum}...`);
+  console.log(`[Facebook] Publishing HD photo post: ${animeTitle} Ep ${epNum}...`);
+
   try {
-    const postRes = await fetch(`https://graph.facebook.com/v19.0/${FB_PAGE_ID}/feed`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: caption,
-        link: webUrl,
-        access_token: FB_TOKEN
-      })
-    });
+    let imgBuf = null;
+    if (coverUrl) {
+      try {
+        let imgRes = await fetch(coverUrl, {
+          headers: { "Referer": coverUrl.includes("tioanime") ? "https://tioanime.com/" : "", "User-Agent": "Mozilla/5.0" },
+          signal: AbortSignal.timeout(8000)
+        });
+        if (!imgRes.ok) {
+          imgRes = await fetch(`https://mega-anime.com/api/image-proxy?url=${encodeURIComponent(coverUrl)}`, {
+            signal: AbortSignal.timeout(8000)
+          });
+        }
+        if (imgRes.ok) {
+          imgBuf = await imgRes.arrayBuffer();
+        }
+      } catch (e) {}
+    }
+
+    let postRes;
+    if (imgBuf && imgBuf.byteLength > 1000) {
+      const formData = new FormData();
+      formData.append("source", new Blob([imgBuf], { type: "image/jpeg" }), "cover.jpg");
+      formData.append("caption", caption);
+      formData.append("access_token", FB_TOKEN);
+
+      postRes = await fetch(`https://graph.facebook.com/v19.0/${FB_PAGE_ID}/photos`, {
+        method: "POST",
+        body: formData
+      });
+    } else {
+      postRes = await fetch(`https://graph.facebook.com/v19.0/${FB_PAGE_ID}/feed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: caption,
+          link: webUrl,
+          access_token: FB_TOKEN
+        })
+      });
+    }
 
     const resData = await postRes.json();
-    if (resData && resData.id) {
-      console.log(`[Facebook] ✅ Successfully published post! ID: ${resData.id}`);
+    if (resData && (resData.id || resData.post_id)) {
+      const pid = resData.post_id || resData.id;
+      console.log(`[Facebook] ✅ Successfully published HD post! ID: ${pid}`);
       postedSet.add(episodeIdentifier);
       fs.writeFileSync(POSTED_FILE, JSON.stringify(Array.from(postedSet), null, 2), "utf-8");
     } else {
       console.warn(`[Facebook] Failed to post:`, resData);
     }
   } catch (e) {
-    console.warn(`[Facebook] Error posting to feed:`, e.message);
+    console.warn(`[Facebook] Error posting:`, e.message);
   }
 }
 
@@ -538,24 +588,30 @@ async function runAutoDownloaderSweep() {
     const folder = getExistingFolder(animeKey, title);
     const existingEpisodes = manifest[animeKey]?.episodes || {};
     const currentCount = Object.keys(existingEpisodes).length;
+    const targetCount = airingList[animeKey] || 999;
 
-    const nextEp = currentCount + 1;
-    try {
-      const probeRes = await fetch(`https://jkanime.net/${slug}/${nextEp}/`, {
-        method: "HEAD",
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-        signal: AbortSignal.timeout(8000)
-      });
-      if (probeRes.ok) {
+    let nextEp = currentCount + 1;
+    while (nextEp <= targetCount) {
+      try {
+        const probeRes = await fetch(`https://jkanime.net/${slug}/${nextEp}/`, {
+          method: "HEAD",
+          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+          signal: AbortSignal.timeout(8000)
+        });
+        if (!probeRes.ok) break;
         console.log(`🎯 [Backlog Detected!] ${title} Episode ${nextEp} is available on source!`);
-        try {
-          const ok = await processAnimeEpisode(animeKey, slug, nextEp, title, folder);
-          if (ok) downloadedAny++;
-        } catch (e) {
-          console.error(`❌ Error processing ${title} Ep ${nextEp}:`, e.message);
+        const ok = await processAnimeEpisode(animeKey, slug, nextEp, title, folder);
+        if (ok) {
+          downloadedAny++;
+          nextEp++;
+        } else {
+          break;
         }
+      } catch (e) {
+        console.error(`❌ Error processing ${title} Ep ${nextEp}:`, e.message);
+        break;
       }
-    } catch (e) {}
+    }
   }
 
   console.log(`\n================================================================`);
