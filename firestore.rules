@@ -59,6 +59,13 @@ service cloud.firestore {
       allow write: if true; // View counts are public (no sensitive data)
     }
 
+    // ── Page Views / Visitor Tracking (public create for real traffic analytics) ──
+    match /page_views/{viewId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
     // ── Admin collection — NEVER accessible from client ──
     match /admin/{document=**} {
       allow read, write: if false;
