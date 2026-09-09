@@ -11,6 +11,7 @@ import { setDoc, getDoc, doc } from "firebase/firestore";
 import { auth, db, OperationType, handleFirestoreError } from "../lib/firebase";
 import { getApiUrl, isNativePlatform } from "../utils/apiConfig";
 import { App as CapApp } from "@capacitor/app";
+import { isUserAdmin } from "../types";
 
 interface AuthModalProps {
   onClose?: () => void;
@@ -125,7 +126,7 @@ export default function AuthModal({ onClose, onSuccess, isFullScreen = false }: 
       // Step 2 -> Create actual Firebase user account
       const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
       const fbUser = userCredential.user;
-      const isAdminUser = cleanEmail === "baezcabrera.j.r@gmail.com";
+      const isAdminUser = isUserAdmin(cleanEmail);
 
       const defaultProfile = {
         id: "default",
@@ -192,7 +193,7 @@ export default function AuthModal({ onClose, onSuccess, isFullScreen = false }: 
         ]) as any;
 
         const fbUser = userCredential.user;
-        const isAdminUser = cleanEmail === "baezcabrera.j.r@gmail.com";
+        const isAdminUser = isUserAdmin(cleanEmail);
 
         let userData: any = null;
         try {
@@ -267,7 +268,7 @@ export default function AuthModal({ onClose, onSuccess, isFullScreen = false }: 
         ]) as any;
 
         const fbUser = userCredential.user;
-        const isAdminUser = cleanEmail === "baezcabrera.j.r@gmail.com";
+        const isAdminUser = isUserAdmin(cleanEmail);
 
         // Send official verification email via Firebase Auth
         try {
@@ -389,7 +390,7 @@ export default function AuthModal({ onClose, onSuccess, isFullScreen = false }: 
             if (uid && emailParam) {
               completed = true;
               const cleanEmail = emailParam.toLowerCase().trim();
-              const isAdminUser = cleanEmail === "baezcabrera.j.r@gmail.com";
+              const isAdminUser = isUserAdmin(cleanEmail);
 
               let userData: any;
               try {
@@ -471,7 +472,7 @@ export default function AuthModal({ onClose, onSuccess, isFullScreen = false }: 
       ]) as any;
       const fbUser = userCredential.user;
       const cleanEmail = fbUser.email?.toLowerCase().trim() || "";
-      const isAdminUser = cleanEmail === "baezcabrera.j.r@gmail.com";
+      const isAdminUser = isUserAdmin(cleanEmail);
 
       let userData: any;
       try {

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { getDoc, setDoc, doc } from "firebase/firestore";
 import { auth, db, OperationType, handleFirestoreError } from "../lib/firebase";
-import { User, Profile } from "../types";
+import { User, Profile, isUserAdmin, setDynamicAdmins } from "../types";
 import { safeLocalStorage } from "../utils/safeStorage";
 
 export function useAuth() {
@@ -17,6 +17,17 @@ export function useAuth() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Sincronizar roles de administrador dinámicos desde el backend
+    fetch("/api/admin/roles")
+      .then(res => res.json())
+      .then(roles => {
+        if (Array.isArray(roles)) {
+          setDynamicAdmins(roles);
+          safeLocalStorage.setItem("megaAnime_dynamic_admins", JSON.stringify(roles));
+        }
+      })
+      .catch(() => {});
+
     // Safety fallback: Never block the UI on loading screen
     const safetyTimer = setTimeout(() => {
       setLoading(false);
@@ -38,7 +49,7 @@ export function useAuth() {
           }
           
           let userData: any;
-          const isAdminUser = fbUser.email?.trim().toLowerCase() === "baezcabrera.j.r@gmail.com";
+          const isAdminUser = isUserAdmin(fbUser.email);
           
           if (userDoc && typeof userDoc.exists === "function" && userDoc.exists()) {
             userData = userDoc.data();

@@ -123,6 +123,39 @@ export async function createExpressApp() {
     next();
   });
 
+  // --- ADMIN ROLES IMPLEMENTATION ---
+  const adminRolesPath = path.join(process.cwd(), "src/data/admin_roles.json");
+  const adminRolesDistPath = path.join(process.cwd(), "dist/admin_roles.json");
+
+  function readAdminRoles(): any[] {
+    try {
+      if (fs.existsSync(adminRolesPath)) {
+        return JSON.parse(fs.readFileSync(adminRolesPath, "utf8"));
+      } else if (fs.existsSync(adminRolesDistPath)) {
+        return JSON.parse(fs.readFileSync(adminRolesDistPath, "utf8"));
+      }
+    } catch (e) {
+      console.error("Error reading admin_roles.json:", e);
+    }
+    return [
+      { email: "baezcabrera.j.r@gmail.com", name: "Juan Ramón Báez", role: "super_admin", addedAt: "2026-01-10T00:00:00.000Z", addedBy: "system" },
+      { email: "ericksonflores20@gmail.com", name: "Erickson Flores", role: "admin", addedAt: "2026-09-08T00:00:00.000Z", addedBy: "baezcabrera.j.r@gmail.com" }
+    ];
+  }
+
+  function writeAdminRoles(roles: any[]) {
+    try {
+      const parentDir = path.dirname(adminRolesPath);
+      if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+      fs.writeFileSync(adminRolesPath, JSON.stringify(roles, null, 2), "utf8");
+      if (fs.existsSync(path.dirname(adminRolesDistPath))) {
+        fs.writeFileSync(adminRolesDistPath, JSON.stringify(roles, null, 2), "utf8");
+      }
+    } catch (e) {
+      console.error("Error writing admin_roles.json:", e);
+    }
+  }
+
   // --- CUSTOM ADMIN DATABASE IMPLEMENTATION ---
   const customDbPath = path.join(process.cwd(), "src/utils/customAnimes.json");
   const customMangasDbPath = path.join(process.cwd(), "src/utils/customMangas.json");
@@ -868,7 +901,7 @@ export async function createExpressApp() {
     if (cachedData) return res.json(cachedData);
 
     try {
-      const catalog = LOCAL_CATALOG;
+      const catalog = LOCAL_CATALOG.filter(a => a.active !== false);
       const PAGE_SIZE = 24;
       const offset = (page - 1) * PAGE_SIZE;
 
@@ -916,7 +949,8 @@ export async function createExpressApp() {
     const cached = apiCache.get(cacheKey);
     if (cached) return res.json(cached);
 
-    let results = LOCAL_CATALOG;
+    const includeInactive = req.query.includeInactive === "true";
+    let results = includeInactive ? LOCAL_CATALOG : LOCAL_CATALOG.filter(a => a.active !== false);
 
     // Filter by search query (title, synopsis, genres)
     if (q) {
@@ -1676,7 +1710,7 @@ export async function createExpressApp() {
     const cached = apiCache.get(cacheKey);
     if (cached) return res.json(cached);
 
-    let movies = LOCAL_CATALOG.filter(a => a.type === "Película");
+    let movies = LOCAL_CATALOG.filter(a => a.type === "Película" && a.active !== false);
     if (genre) {
       movies = movies.filter(a =>
         (a.genres || []).some((g: string) => g.toLowerCase().includes(genre))
@@ -2232,6 +2266,133 @@ export async function createExpressApp() {
     res.json(loadR2Manifest());
   });
 
+  // --- ADMIN ROLES MANAGEMENT ---
+  app.get("/api/admin/roles", (req, res) => {
+    try {
+      const roles = readAdminRoles();
+      res.json(roles);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/admin/roles/add", (req, res) => {
+    try {
+      const { email, name, role, addedBy } = req.body;
+      if (!email || typeof email !== "string" || !email.includes("@")) {
+        return res.status(400).json({ error: "Ingresa un correo electrónico válido" });
+      }
+      const cleanEmail = email.trim().toLowerCase();
+      let roles = readAdminRoles();
+      const existingIdx = roles.findIndex((r: any) => r.email.trim().toLowerCase() === cleanEmail);
+
+      if (existingIdx !== -1) {
+        roles[existingIdx].name = name || roles[existingIdx].name;
+        roles[existingIdx].role = role || roles[existingIdx].role || "admin";
+      } else {
+        roles.push({
+          email: cleanEmail,
+          name: name ? name.trim() : cleanEmail.split("@")[0],
+          role: role || "admin",
+          addedAt: new Date().toISOString(),
+          addedBy: addedBy || "baezcabrera.j.r@gmail.com"
+        });
+      }
+
+      writeAdminRoles(roles);
+      console.log(`[Admin Roles] ✅ Added/Updated admin: ${cleanEmail} (${role || 'admin'})`);
+      res.json({ success: true, roles, message: `Usuario ${cleanEmail} registrado como administrador.` });
+    } catch (e: any) {
+      console.error("Error adding admin role:", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/admin/roles/remove", (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: "Correo requerido" });
+      }
+      const cleanEmail = email.trim().toLowerCase();
+      if (cleanEmail === "baezcabrera.j.r@gmail.com") {
+        return res.status(403).json({ error: "Acción denegada: No es posible revocar permisos al Super Administrador principal." });
+      }
+
+      let roles = readAdminRoles();
+      const beforeCount = roles.length;
+      roles = roles.filter((r: any) => r.email.trim().toLowerCase() !== cleanEmail);
+
+      if (roles.length === beforeCount) {
+        return res.status(404).json({ error: "El correo no se encuentra en la lista de administradores." });
+      }
+
+      writeAdminRoles(roles);
+      console.log(`[Admin Roles] ⚠️ Removed admin: ${cleanEmail}`);
+      res.json({ success: true, roles, message: `Permisos revocados para ${cleanEmail}.` });
+    } catch (e: any) {
+      console.error("Error removing admin role:", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // --- CONTENT VISIBILITY TOGGLE (ACTIVE / INACTIVE) ---
+  app.post("/api/admin/content/toggle-active", (req, res) => {
+    try {
+      const { id, type, active } = req.body;
+      if (!id) {
+        return res.status(400).json({ error: "ID de contenido requerido" });
+      }
+
+      const isManga = type === "manga" || type === "Manga";
+      if (isManga) {
+        GLOBAL_CUSTOM_MANGAS = readCustomMangasDb();
+        const mIdx = GLOBAL_CUSTOM_MANGAS.findIndex(m => m.id === id);
+        let currentActive = true;
+        if (mIdx !== -1) {
+          currentActive = active !== undefined ? Boolean(active) : !(GLOBAL_CUSTOM_MANGAS[mIdx].active !== false);
+          GLOBAL_CUSTOM_MANGAS[mIdx].active = currentActive;
+        } else {
+          currentActive = active !== undefined ? Boolean(active) : false;
+          GLOBAL_CUSTOM_MANGAS.push({ id, active: currentActive });
+        }
+        writeCustomMangasDb(GLOBAL_CUSTOM_MANGAS);
+        apiCache.flushAll();
+        return res.json({ success: true, id, active: currentActive });
+      }
+
+      // Anime / Película
+      const idx = LOCAL_CATALOG.findIndex(a => a.id === id);
+      let newActiveState = true;
+      if (idx !== -1) {
+        newActiveState = active !== undefined ? Boolean(active) : !(LOCAL_CATALOG[idx].active !== false);
+        LOCAL_CATALOG[idx].active = newActiveState;
+      } else {
+        newActiveState = active !== undefined ? Boolean(active) : false;
+      }
+
+      // Persist to catalog.json
+      persistCatalog(LOCAL_CATALOG);
+
+      // Also sync custom DB
+      GLOBAL_CUSTOM_ANIMES = readCustomDb();
+      const cIdx = GLOBAL_CUSTOM_ANIMES.findIndex(a => a.id === id);
+      if (cIdx !== -1) {
+        GLOBAL_CUSTOM_ANIMES[cIdx].active = newActiveState;
+      } else if (idx !== -1) {
+        GLOBAL_CUSTOM_ANIMES.push({ ...LOCAL_CATALOG[idx], active: newActiveState });
+      }
+      writeCustomDb(GLOBAL_CUSTOM_ANIMES);
+
+      apiCache.flushAll();
+      console.log(`[Content Toggle] Toggled "${id}" active state to ${newActiveState}`);
+      res.json({ success: true, id, active: newActiveState });
+    } catch (e: any) {
+      console.error("Error toggling content active state:", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // 2. Save/Update catalog anime or movie (with disk persistence to catalog.json)
   app.post("/api/admin/animes/save", (req, res) => {
     try {
@@ -2262,8 +2423,9 @@ export async function createExpressApp() {
       anime.year = parseInt(anime.year, 10) || new Date().getFullYear();
       anime.genres = Array.isArray(anime.genres) ? anime.genres : (anime.genres ? [anime.genres] : ["Acción"]);
       anime.episodes = anime.episodes || [];
+      anime.active = anime.active !== undefined ? Boolean(anime.active) : true;
 
-      // 1. Update in-memory LOCAL_CATALOG
+      // 1. Update in-memory LOCAL_CATALOG preserving all extended metadata
       const index = LOCAL_CATALOG.findIndex(a => a.id === anime.id);
       if (index !== -1) {
         LOCAL_CATALOG[index] = { ...LOCAL_CATALOG[index], ...anime };
@@ -2285,7 +2447,7 @@ export async function createExpressApp() {
       writeCustomDb(GLOBAL_CUSTOM_ANIMES);
 
       apiCache.flushAll(); // Flush cache so home, movies, and search show changes instantly
-      res.json({ success: true, anime });
+      res.json({ success: true, anime: LOCAL_CATALOG[index !== -1 ? index : 0] });
     } catch (e: any) {
       console.error("Error saving anime:", e);
       res.status(500).json({ error: e.message });
@@ -2299,6 +2461,7 @@ export async function createExpressApp() {
       if (!manga || !manga.id) {
         return res.status(400).json({ error: "Invalid manga object" });
       }
+      manga.active = manga.active !== undefined ? Boolean(manga.active) : true;
 
       GLOBAL_CUSTOM_MANGAS = readCustomMangasDb();
       const index = GLOBAL_CUSTOM_MANGAS.findIndex(m => m.id === manga.id);
@@ -2309,6 +2472,7 @@ export async function createExpressApp() {
       }
 
       writeCustomMangasDb(GLOBAL_CUSTOM_MANGAS);
+      apiCache.flushAll();
       res.json({ success: true, manga });
     } catch (e: any) {
       res.status(500).json({ error: e.message });

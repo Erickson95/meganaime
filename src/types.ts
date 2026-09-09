@@ -25,7 +25,7 @@ export interface Anime {
   genres: string[];
   status: "En emisión" | "Finalizado" | "Próximamente";
   rating: number;
-  type: "Anime" | "Película" | "OVA" | "Especial";
+  type: "Anime" | "Película" | "OVA" | "Especial" | string;
   episodesCount: number;
   year: number;
   episodes: Episode[];
@@ -38,6 +38,12 @@ export interface Anime {
   airedEpisodesCount?: number;
   hasDub?: boolean;
   dubLanguages?: ("latino" | "castellano")[];
+  active?: boolean; // Default true. If false, hidden from public platform
+  studios?: string[];
+  season?: string;
+  broadcastDay?: string;
+  trailerUrl?: string;
+  ageRating?: string;
 }
 
 export interface Manga {
@@ -50,6 +56,16 @@ export interface Manga {
   year: number;
   chaptersCount: number;
   rating: number;
+  active?: boolean; // Default true. If false, hidden from public platform
+  author?: string;
+}
+
+export interface AdminRoleRecord {
+  email: string;
+  name?: string;
+  role: 'super_admin' | 'admin' | 'moderator';
+  addedAt: string;
+  addedBy: string;
 }
 
 export interface Profile {
@@ -82,6 +98,45 @@ export interface User {
   isAdmin?: boolean;
   profiles?: Profile[]; // Multiple sub-profiles like Crunchyroll
   activeProfileId?: string; // ID of the currently active profile
+}
+
+export const ADMIN_EMAILS: string[] = [
+  "baezcabrera.j.r@gmail.com",
+  "ericksonflores20@gmail.com"
+];
+
+let cachedDynamicAdmins: string[] = [];
+
+export function setDynamicAdmins(admins: (string | AdminRoleRecord)[]) {
+  if (Array.isArray(admins)) {
+    cachedDynamicAdmins = admins.map(a => typeof a === 'string' ? a.trim().toLowerCase() : a.email.trim().toLowerCase());
+  }
+}
+
+export function isUserAdmin(email?: string | null, extraAdmins?: string[]): boolean {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  if (ADMIN_EMAILS.includes(clean) || clean.startsWith("baezcabrera.j.r") || clean.startsWith("ericksonflores20")) {
+    return true;
+  }
+  if (cachedDynamicAdmins.includes(clean)) {
+    return true;
+  }
+  if (extraAdmins && extraAdmins.map(e => e.trim().toLowerCase()).includes(clean)) {
+    return true;
+  }
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const localCached = window.localStorage.getItem("megaAnime_dynamic_admins");
+      if (localCached) {
+        const list = JSON.parse(localCached);
+        if (Array.isArray(list) && list.some((item: any) => (typeof item === 'string' ? item : item.email)?.trim().toLowerCase() === clean)) {
+          return true;
+        }
+      }
+    }
+  } catch (e) {}
+  return false;
 }
 
 export interface AuthResponse {

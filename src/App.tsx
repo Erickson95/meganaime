@@ -3,7 +3,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useAnimeData } from "./hooks/useAnimeData";
 import { useAnimeNavigation } from "./hooks/useAnimeNavigation";
 import { useCategoryData } from "./hooks/useCategoryData";
-import { Anime, Episode, Manga } from "./types";
+import { Anime, Episode, Manga, isUserAdmin } from "./types";
 import Header from "./components/Header";
 import AnimeDetail from "./components/AnimeDetail";
 import VideoPlayer from "./components/VideoPlayer";
@@ -416,7 +416,7 @@ function AppContent() {
 
         if (uid && emailParam) {
           const cleanEmail = emailParam.toLowerCase().trim();
-          const isAdminUser = cleanEmail === "baezcabrera.j.r@gmail.com";
+          const isAdminUser = isUserAdmin(cleanEmail);
 
           let userData: any;
           try {
@@ -610,8 +610,8 @@ function AppContent() {
         {activeTab === "mangas" && <MangaSection categories={categories} />}
 
         {activeTab === "admin" && (
-          (currentUser?.isAdmin && currentUser?.email?.toLowerCase().trim() === "baezcabrera.j.r@gmail.com") ||
-          (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))
+          (currentUser?.isAdmin && isUserAdmin(currentUser?.email)) ||
+          (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && (!currentUser || isUserAdmin(currentUser?.email)))
         ) && (
           <AdminPanel />
         )}

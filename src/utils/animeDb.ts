@@ -98,9 +98,11 @@ export function generateEpisodesForAnime(anime: Anime): Episode[] {
 /**
  * Returns catalog animes without allocating 60,000 Episode objects in memory at once.
  * Prevents WKWebView OOM (Out-Of-Memory) Crashes on iOS.
+ * @param includeInactive If true, returns all animes including disabled/deactivated ones (for AdminPanel). If false (default), excludes disabled titles for normal users.
  */
-export function getAnimesWithEpisodes(): Anime[] {
-  return _catalog;
+export function getAnimesWithEpisodes(includeInactive = false): Anime[] {
+  if (includeInactive) return _catalog;
+  return _catalog.filter(a => a.active !== false);
 }
 
 export function generateMockRecentEpisodes(animes: Anime[]): Episode[] {

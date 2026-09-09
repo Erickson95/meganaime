@@ -4,6 +4,7 @@ import { db } from '../lib/firebase';
 import { 
   Users, 
   Eye, 
+  EyeOff,
   TrendingUp, 
   LayoutDashboard, 
   Crown, 
@@ -30,6 +31,10 @@ import {
   Server,
   Activity,
   ShieldAlert,
+  ShieldCheck,
+  Code,
+  Lock,
+  Unlock,
   Sliders,
   Check,
   Flag,
@@ -56,6 +61,8 @@ import {
 } from 'lucide-react';
 import { MOCK_ANIMES, getAnimesWithEpisodes } from '../utils/animeDb';
 import { MOCK_MANGAS } from '../utils/mangaDb';
+import { AdminRoleRecord, setDynamicAdmins } from '../types';
+import { safeLocalStorage } from '../utils/safeStorage';
 import { fetchUserReports, updateReportStatus, UserReport } from '../utils/reports';
 import { getGlobalBannerAlert, saveGlobalBannerAlert, GlobalBannerAlert } from '../utils/systemAlerts';
 import { getApiUrl } from '../utils/apiConfig';
@@ -107,6 +114,14 @@ interface LocalAnime {
   episodesCount?: number;
   chaptersCount?: number;
   year: number;
+  active?: boolean;
+  studios?: string[];
+  season?: string;
+  broadcastDay?: string;
+  trailerUrl?: string;
+  ageRating?: string;
+  external_id?: string | number;
+  [key: string]: any;
 }
 
 // CRM User Interface
@@ -121,7 +136,7 @@ interface AdminUser {
 }
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<'inicio' | 'en_vivo' | 'catalogo' | 'apariencia' | 'usuarios' | 'reportes' | 'servidores'>('inicio');
+  const [activeTab, setActiveTab] = useState<'inicio' | 'en_vivo' | 'catalogo' | 'apariencia' | 'usuarios' | 'roles' | 'reportes' | 'servidores'>('inicio');
   const [loading, setLoading] = useState(true);
 
   // Live Users Telemetry State
@@ -218,12 +233,25 @@ export default function AdminPanel() {
   const [selectedAnime, setSelectedAnime] = useState<LocalAnime | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [animeToDelete, setAnimeToDelete] = useState<LocalAnime | null>(null);
-  const [editorTab, setEditorTab] = useState<'general' | 'images' | 'metadata'>('general');
+  const [editorTab, setEditorTab] = useState<'general' | 'images' | 'metadata' | 'json'>('general');
+  const [rawJsonText, setRawJsonText] = useState('');
   const [isSuggestingMedia, setIsSuggestingMedia] = useState(false);
   const [catalogStatusFilter, setCatalogStatusFilter] = useState<'all' | 'En emisión' | 'Finalizado' | 'Próximamente'>('all');
+  const [catalogVisibilityFilter, setCatalogVisibilityFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [isSavingCatalog, setIsSavingCatalog] = useState(false);
   const [isDeletingCatalog, setIsDeletingCatalog] = useState(false);
-  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Admin Roles State
+  const [adminRoles, setAdminRoles] = useState<AdminRoleRecord[]>([
+    { email: "baezcabrera.j.r@gmail.com", name: "Juan Ramón Báez", role: "super_admin", addedAt: "2026-01-10T00:00:00.000Z", addedBy: "system" },
+    { email: "ericksonflores20@gmail.com", name: "Erickson Flores", role: "admin", addedAt: "2026-09-08T00:00:00.000Z", addedBy: "baezcabrera.j.r@gmail.com" }
+  ]);
+  const [isAddAdminModalOpen, setIsAddAdminModalOpen] = useState(false);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminName, setNewAdminName] = useState("");
+  const [newAdminRole, setNewAdminRole] = useState<'admin' | 'moderator'>('admin');
+  const [isSubmittingRole, setIsSubmittingRole] = useState(false);
   
   // Cloudflare R2 Manifest State (live updates)
   const [r2Manifest, setR2Manifest] = useState<Record<string, any>>(r2ManifestDefault || {});
@@ -267,12 +295,13 @@ export default function AdminPanel() {
 
   // CRM Users state
   const [users, setUsers] = useState<AdminUser[]>([
-    { id: '1', name: 'Juan Ramón Báez', email: 'baezcabrera.j.r@gmail.com', plan: 'Premium', status: 'Activo', lastLogin: 'Hace 5 minutos', registeredDate: '2026-01-10' },
-    { id: '2', name: 'Carlos Mendoza', email: 'carlos.mendo@gmail.com', plan: 'Premium', status: 'Activo', lastLogin: 'Hace 2 horas', registeredDate: '2026-03-14' },
-    { id: '3', name: 'Sofía Rodríguez', email: 'sofia.r@outlook.com', plan: 'Básico', status: 'Activo', lastLogin: 'Ayer', registeredDate: '2026-05-20' },
-    { id: '4', name: 'Marcos Pérez', email: 'marcos.perez@hotmail.com', plan: 'Gratuito', status: 'Suspendido', lastLogin: 'Hace 10 días', registeredDate: '2026-02-01' },
-    { id: '5', name: 'Ana Gómez', email: 'ana.gomez@gmail.com', plan: 'Básico', status: 'Pendiente', lastLogin: 'Hace 3 días', registeredDate: '2026-07-11' },
-    { id: '6', name: 'Luis Martínez', email: 'luis.mart@yahoo.com', plan: 'Premium', status: 'Activo', lastLogin: 'Hace 1 hora', registeredDate: '2026-06-25' }
+    { id: '1', name: 'Juan Ramón Báez', email: 'baezcabrera.j.r@gmail.com', plan: 'Admin / Premium', status: 'Activo', lastLogin: 'Hace 5 minutos', registeredDate: '2026-01-10' },
+    { id: '2', name: 'Erickson Flores', email: 'ericksonflores20@gmail.com', plan: 'Admin / Premium', status: 'Activo', lastLogin: 'Activo ahora', registeredDate: '2026-01-10' },
+    { id: '3', name: 'Carlos Mendoza', email: 'carlos.mendo@gmail.com', plan: 'Premium', status: 'Activo', lastLogin: 'Hace 2 horas', registeredDate: '2026-03-14' },
+    { id: '4', name: 'Sofía Rodríguez', email: 'sofia.r@outlook.com', plan: 'Básico', status: 'Activo', lastLogin: 'Ayer', registeredDate: '2026-05-20' },
+    { id: '5', name: 'Marcos Pérez', email: 'marcos.perez@hotmail.com', plan: 'Gratuito', status: 'Suspendido', lastLogin: 'Hace 10 días', registeredDate: '2026-02-01' },
+    { id: '6', name: 'Ana Gómez', email: 'ana.gomez@gmail.com', plan: 'Básico', status: 'Pendiente', lastLogin: 'Hace 3 días', registeredDate: '2026-07-11' },
+    { id: '7', name: 'Luis Martínez', email: 'luis.mart@yahoo.com', plan: 'Premium', status: 'Activo', lastLogin: 'Hace 1 hora', registeredDate: '2026-06-25' }
   ]);
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
@@ -461,19 +490,25 @@ export default function AdminPanel() {
   // Load Catalog, Real Registered Users, and Monthly Analytics from Firestore
   useEffect(() => {
     async function loadCatalog() {
-      const baseCatalog = getAnimesWithEpisodes();
+      const baseCatalog = getAnimesWithEpisodes(true);
       try {
         const res = await fetch('/api/admin/animes');
         if (res.ok) {
           const customAnimes = await res.json();
-          const customMap = new Map(customAnimes.map((a: any) => [a.id, a]));
+          const customMap = new Map<string, any>(customAnimes.map((a: any) => [a.id, a]));
           
           // Merge custom with full catalog
           const merged: LocalAnime[] = (baseCatalog as any[]).map((a: any): LocalAnime => {
-            if (customMap.has(a.id)) {
-              return customMap.get(a.id) as LocalAnime;
+            const custom = customMap.get(a.id);
+            if (custom) {
+              return {
+                ...a,
+                ...custom,
+                active: custom.active !== undefined ? custom.active : (a.active !== undefined ? a.active : true)
+              } as LocalAnime;
             }
             return {
+              ...a,
               id: a.id,
               title: a.title,
               title_english: a.title_english,
@@ -486,7 +521,13 @@ export default function AdminPanel() {
               rating: a.rating || 8.0,
               type: a.type || 'Anime',
               episodesCount: a.episodesCount || 12,
-              year: a.year || 2026
+              year: a.year || 2026,
+              active: a.active !== undefined ? a.active : true,
+              studios: a.studios || [],
+              season: a.season || '',
+              broadcastDay: a.broadcastDay || '',
+              trailerUrl: a.trailerUrl || '',
+              ageRating: a.ageRating || ''
             };
           });
 
@@ -501,6 +542,7 @@ export default function AdminPanel() {
         } else {
           // Fallback to baseCatalog if backend API fails
           setAnimes((baseCatalog as any[]).map((a: any): LocalAnime => ({
+            ...a,
             id: a.id,
             title: a.title,
             title_english: a.title_english,
@@ -513,12 +555,19 @@ export default function AdminPanel() {
             rating: a.rating || 8.0,
             type: a.type || 'Anime',
             episodesCount: a.episodesCount || 12,
-            year: a.year || 2026
+            year: a.year || 2026,
+            active: a.active !== undefined ? a.active : true,
+            studios: a.studios || [],
+            season: a.season || '',
+            broadcastDay: a.broadcastDay || '',
+            trailerUrl: a.trailerUrl || '',
+            ageRating: a.ageRating || ''
           })));
         }
       } catch (e) {
         console.error("Error fetching custom database, using full catalog fallback:", e);
         setAnimes((baseCatalog as any[]).map((a: any): LocalAnime => ({
+          ...a,
           id: a.id,
           title: a.title,
           title_english: a.title_english,
@@ -531,7 +580,13 @@ export default function AdminPanel() {
           rating: a.rating || 8.0,
           type: a.type || 'Anime',
           episodesCount: a.episodesCount || 12,
-          year: a.year || 2026
+          year: a.year || 2026,
+          active: a.active !== undefined ? a.active : true,
+          studios: a.studios || [],
+          season: a.season || '',
+          broadcastDay: a.broadcastDay || '',
+          trailerUrl: a.trailerUrl || '',
+          ageRating: a.ageRating || ''
         })));
       }
 
@@ -540,13 +595,15 @@ export default function AdminPanel() {
         const res = await fetch('/api/admin/mangas');
         if (res.ok) {
           const customMangas = await res.json();
-          const customMap = new Map(customMangas.map((m: any) => [m.id, m]));
+          const customMap = new Map<string, any>(customMangas.map((m: any) => [m.id, m]));
           
           const merged = MOCK_MANGAS.map(m => {
-            if (customMap.has(m.id)) {
-              return customMap.get(m.id);
+            const custom = customMap.get(m.id);
+            if (custom) {
+              return { ...m, ...custom, active: custom.active !== undefined ? custom.active : (m.active !== undefined ? m.active : true) };
             }
             return {
+              ...m,
               id: m.id,
               title: m.title,
               synopsis: m.synopsis || '',
@@ -555,7 +612,8 @@ export default function AdminPanel() {
               status: m.status || 'En emisión',
               rating: m.rating || 8.0,
               chaptersCount: m.chaptersCount || 0,
-              year: m.year || 2026
+              year: m.year || 2026,
+              active: m.active !== undefined ? m.active : true
             };
           });
 
@@ -567,12 +625,25 @@ export default function AdminPanel() {
 
           setMangas(merged);
         } else {
-          setMangas(MOCK_MANGAS);
+          setMangas(MOCK_MANGAS.map(m => ({ ...m, active: m.active !== undefined ? m.active : true })));
         }
       } catch (e) {
         console.error("Error fetching custom mangas database:", e);
-        setMangas(MOCK_MANGAS);
+        setMangas(MOCK_MANGAS.map(m => ({ ...m, active: m.active !== undefined ? m.active : true })));
       }
+
+      // Load Admin Roles
+      try {
+        const rolesRes = await fetch('/api/admin/roles');
+        if (rolesRes.ok) {
+          const rolesData = await rolesRes.json();
+          if (Array.isArray(rolesData)) {
+            setAdminRoles(rolesData);
+            setDynamicAdmins(rolesData);
+            safeLocalStorage.setItem("megaAnime_dynamic_admins", JSON.stringify(rolesData));
+          }
+        }
+      } catch (e) {}
 
       // Load Cloudflare R2 Manifest
       try {
@@ -681,7 +752,7 @@ export default function AdminPanel() {
   // Reset page when filtering or searching
   useEffect(() => {
     setCurrentPage(1);
-  }, [catalogFilter, searchQuery, catalogStatusFilter]);
+  }, [catalogFilter, searchQuery, catalogStatusFilter, catalogVisibilityFilter]);
 
   // General Filter items depending on tab selection (Anime, Película, Manga) and status
   const getFilteredItems = () => {
@@ -696,6 +767,12 @@ export default function AdminPanel() {
 
     if (catalogStatusFilter !== 'all') {
       dataset = dataset.filter(item => item.status === catalogStatusFilter);
+    }
+
+    if (catalogVisibilityFilter === 'active') {
+      dataset = dataset.filter(item => item.active !== false);
+    } else if (catalogVisibilityFilter === 'inactive') {
+      dataset = dataset.filter(item => item.active === false);
     }
 
     if (!searchQuery.trim()) return dataset;
@@ -716,11 +793,129 @@ export default function AdminPanel() {
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
   const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  // Filter CRM Users
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(userSearchQuery.toLowerCase())
-  );
+  // Toggle Active/Inactive visibility for an anime or manga with instant persistence
+  const handleToggleActive = async (item: LocalAnime) => {
+    const newActive = item.active === false ? true : false;
+    
+    // Optimistic UI update
+    if (catalogFilter === 'manga') {
+      setMangas(prev => prev.map(m => m.id === item.id ? { ...m, active: newActive } : m));
+    } else {
+      setAnimes(prev => prev.map(a => a.id === item.id ? { ...a, active: newActive } : a));
+    }
+
+    try {
+      const res = await fetch("/api/admin/content/toggle-active", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: item.id,
+          type: catalogFilter === 'manga' ? 'manga' : 'anime',
+          active: newActive
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToastMessage({
+          text: `"${item.title}" ${newActive ? 'ahora está ACTIVO (visible para usuarios)' : 'ahora está DESACTIVADO (oculto en la web)'}.`,
+          type: newActive ? 'success' : 'info'
+        });
+        setTimeout(() => setToastMessage(null), 3500);
+      } else {
+        // Revert on failure
+        if (catalogFilter === 'manga') {
+          setMangas(prev => prev.map(m => m.id === item.id ? { ...m, active: !newActive } : m));
+        } else {
+          setAnimes(prev => prev.map(a => a.id === item.id ? { ...a, active: !newActive } : a));
+        }
+        alert(data.error || "No se pudo actualizar la visibilidad");
+      }
+    } catch (e) {
+      // Revert on error
+      if (catalogFilter === 'manga') {
+        setMangas(prev => prev.map(m => m.id === item.id ? { ...m, active: !newActive } : m));
+      } else {
+        setAnimes(prev => prev.map(a => a.id === item.id ? { ...a, active: !newActive } : a));
+      }
+      alert("Error de red al actualizar visibilidad.");
+    }
+  };
+
+  // Submit new admin role
+  const handleAddAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminEmail || !newAdminEmail.includes("@")) {
+      alert("Ingresa un correo electrónico válido");
+      return;
+    }
+    setIsSubmittingRole(true);
+    try {
+      const res = await fetch("/api/admin/roles/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: newAdminEmail.trim().toLowerCase(),
+          name: newAdminName.trim() || newAdminEmail.split("@")[0],
+          role: newAdminRole,
+          addedBy: "baezcabrera.j.r@gmail.com"
+        })
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.roles)) {
+        setAdminRoles(data.roles);
+        setDynamicAdmins(data.roles);
+        safeLocalStorage.setItem("megaAnime_dynamic_admins", JSON.stringify(data.roles));
+        setIsAddAdminModalOpen(false);
+        setNewAdminEmail("");
+        setNewAdminName("");
+        setToastMessage({
+          text: `¡${newAdminEmail} registrado como ${newAdminRole === 'admin' ? 'Administrador' : 'Moderador'}!`,
+          type: 'success'
+        });
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        alert(data.error || "No se pudo agregar el administrador");
+      }
+    } catch (err) {
+      alert("Error de red al agregar administrador");
+    } finally {
+      setIsSubmittingRole(false);
+    }
+  };
+
+  // Remove admin role
+  const handleRemoveAdmin = async (email: string) => {
+    const clean = email.trim().toLowerCase();
+    if (clean === "baezcabrera.j.r@gmail.com") {
+      alert("Acción protegida: El Super Administrador principal no puede ser revocado.");
+      return;
+    }
+    if (!window.confirm(`¿Confirmas revocar los permisos de administrador a "${clean}"?`)) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/roles/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: clean })
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.roles)) {
+        setAdminRoles(data.roles);
+        setDynamicAdmins(data.roles);
+        safeLocalStorage.setItem("megaAnime_dynamic_admins", JSON.stringify(data.roles));
+        setToastMessage({
+          text: `Permisos revocados para ${clean}.`,
+          type: 'info'
+        });
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        alert(data.error || "No se pudo revocar el rol.");
+      }
+    } catch (err) {
+      alert("Error de red al revocar administrador");
+    }
+  };
 
   // Categories helper CRUD
   const handleAddCategory = () => {
@@ -749,18 +944,23 @@ export default function AdminPanel() {
     setCarouselOrder(newOrder);
   };
 
-  // Quick Action triggers for CRM
+  // Filter CRM Users
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(userSearchQuery.toLowerCase())
+  );
+
+  // CRM User management action dispatcher
   const handleUserAction = (userId: string, action: 'suspend' | 'activate' | 'free_month' | 'reset_password') => {
     setUsers(users.map(u => {
       if (u.id === userId) {
-        if (action === 'suspend') {
-          return { ...u, status: 'Suspendido' };
-        } else if (action === 'activate') {
-          return { ...u, status: 'Activo' };
-        } else if (action === 'free_month') {
-          alert(`¡Se ha otorgado 1 Mes Gratis de suscripción a ${u.name}!`);
+        if (action === 'suspend') return { ...u, status: 'Suspendido' };
+        if (action === 'activate') return { ...u, status: 'Activo' };
+        if (action === 'free_month') {
+          alert(`¡Se ha otorgado 1 mes gratis a ${u.name}! Su plan actual es: ${u.plan}`);
           return { ...u, plan: 'Premium' };
-        } else if (action === 'reset_password') {
+        }
+        if (action === 'reset_password') {
           alert(`Correo de restablecimiento de contraseña enviado a ${u.email}`);
         }
       }
@@ -790,7 +990,7 @@ export default function AdminPanel() {
   const handleOpenCreateModal = () => {
     const isMovie = catalogFilter === 'movie';
     const isManga = catalogFilter === 'manga';
-    setSelectedAnime({
+    const newItem: LocalAnime = {
       id: '',
       title: '',
       title_english: '',
@@ -804,21 +1004,37 @@ export default function AdminPanel() {
       type: isMovie ? 'Película' : isManga ? 'Manga' : 'Anime',
       episodesCount: isMovie ? 1 : 12,
       chaptersCount: isManga ? 1 : undefined,
-      year: new Date().getFullYear()
-    });
+      year: new Date().getFullYear(),
+      active: true,
+      studios: [],
+      season: '',
+      broadcastDay: '',
+      trailerUrl: '',
+      ageRating: ''
+    };
+    setSelectedAnime(newItem);
+    setRawJsonText(JSON.stringify(newItem, null, 2));
     setIsCreatingNew(true);
     setEditorTab('general');
   };
 
   // Open modal in edit mode
   const handleOpenEditModal = (item: LocalAnime) => {
-    setSelectedAnime({
+    const prepared: LocalAnime = {
       ...item,
       title_english: item.title_english || '',
       title_romaji: item.title_romaji || '',
       bannerUrl: item.bannerUrl || '',
-      genres: Array.isArray(item.genres) && item.genres.length > 0 ? item.genres : ['Acción']
-    });
+      genres: Array.isArray(item.genres) && item.genres.length > 0 ? item.genres : ['Acción'],
+      active: item.active !== false,
+      studios: item.studios || [],
+      season: item.season || '',
+      broadcastDay: item.broadcastDay || '',
+      trailerUrl: item.trailerUrl || '',
+      ageRating: item.ageRating || ''
+    };
+    setSelectedAnime(prepared);
+    setRawJsonText(JSON.stringify(prepared, null, 2));
     setIsCreatingNew(false);
     setEditorTab('general');
   };
@@ -891,13 +1107,25 @@ export default function AdminPanel() {
     }
 
     setIsSavingCatalog(true);
-    const isManga = catalogFilter === 'manga' || selectedAnime.type === 'Manga';
+    let itemToSave = selectedAnime;
+    if (editorTab === 'json') {
+      try {
+        itemToSave = JSON.parse(rawJsonText);
+        setSelectedAnime(itemToSave);
+      } catch (jsonErr: any) {
+        setIsSavingCatalog(false);
+        alert("Error de sintaxis en JSON: " + jsonErr.message);
+        return;
+      }
+    }
+
+    const isManga = catalogFilter === 'manga' || itemToSave.type === 'Manga';
     const endpoint = isManga ? '/api/admin/mangas/save' : '/api/admin/animes/save';
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selectedAnime)
+        body: JSON.stringify(itemToSave)
       });
       const data = await res.json();
       if (res.ok && (data.success || data.anime || data.manga)) {
@@ -1097,6 +1325,35 @@ export default function AdminPanel() {
           >
             <Server className="h-4 w-4" />
             <span>Servidores</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('roles')}
+            className={`flex items-center justify-between gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeTab === 'roles' 
+                ? 'bg-rose-500/10 border-l-4 border-rose-500 text-rose-400' 
+                : 'text-neutral-400 hover:text-white hover:bg-white/5 border-l-4 border-transparent'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Crown className="h-4 w-4 text-amber-400" />
+              <span>Roles & Admins</span>
+            </div>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              {adminRoles.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('usuarios')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+              activeTab === 'usuarios' 
+                ? 'bg-rose-500/10 border-l-4 border-rose-500 text-rose-400' 
+                : 'text-neutral-400 hover:text-white hover:bg-white/5 border-l-4 border-transparent'
+            }`}
+          >
+            <Users className="h-4 w-4 text-blue-400" />
+            <span>Usuarios (CRM)</span>
           </button>
 
           <button
@@ -2143,8 +2400,8 @@ export default function AdminPanel() {
                 </button>
               </div>
 
-              {/* Status pills + Result counter */}
-              <div className="flex items-center gap-3 flex-wrap">
+              {/* Status & Visibility pills + Result counter */}
+              <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-1.5 text-[11px]">
                   <span className="text-neutral-500 font-semibold mr-1">Estado:</span>
                   {(['all', 'En emisión', 'Finalizado', 'Próximamente'] as const).map((st) => (
@@ -2158,6 +2415,28 @@ export default function AdminPanel() {
                       }`}
                     >
                       {st === 'all' ? 'Todos' : st}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Visibility Filter Pills */}
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <span className="text-neutral-500 font-semibold mr-1">Visibilidad:</span>
+                  {(['all', 'active', 'inactive'] as const).map((vis) => (
+                    <button
+                      key={vis}
+                      onClick={() => setCatalogVisibilityFilter(vis)}
+                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer font-medium ${
+                        catalogVisibilityFilter === vis
+                          ? vis === 'active'
+                            ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30'
+                            : vis === 'inactive'
+                              ? 'bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30'
+                              : 'bg-white/15 text-white font-bold border border-white/20'
+                          : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
+                      }`}
+                    >
+                      {vis === 'all' ? 'Todos' : vis === 'active' ? 'Solo Activos' : 'Solo Desactivados'}
                     </button>
                   ))}
                 </div>
@@ -2220,6 +2499,7 @@ export default function AdminPanel() {
                         <th className="py-3 px-4">Título</th>
                         <th className="py-3 px-4">Categoría</th>
                         <th className="py-3 px-4">Estado</th>
+                        <th className="py-3 px-4 text-center">Visibilidad</th>
                         <th className="py-3 px-4 text-center">Acciones</th>
                       </tr>
                     </thead>
@@ -2272,6 +2552,30 @@ export default function AdminPanel() {
                             }`}>
                               {item.status}
                             </span>
+                          </td>
+                          <td className="py-2.5 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleActive(item)}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black transition-all cursor-pointer shadow-sm active:scale-95 ${
+                                item.active !== false
+                                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+                                  : 'bg-rose-500/15 text-rose-400 border border-rose-500/30 hover:bg-rose-500/25'
+                              }`}
+                              title={item.active !== false ? "Contenido ACTIVO. Haz clic para desactivar (ocultar de la web)" : "Contenido DESACTIVADO. Haz clic para activar (mostrar a usuarios)"}
+                            >
+                              {item.active !== false ? (
+                                <>
+                                  <Eye className="h-3 w-3 text-emerald-400" />
+                                  <span>Activo</span>
+                                </>
+                              ) : (
+                                <>
+                                  <EyeOff className="h-3 w-3 text-rose-400" />
+                                  <span>Desactivado</span>
+                                </>
+                              )}
+                            </button>
                           </td>
                           <td className="py-2.5 px-4 text-center">
                             <div className="flex items-center justify-center gap-1.5">
@@ -2583,6 +2887,21 @@ export default function AdminPanel() {
                     >
                       <span>3. Metadatos & Géneros</span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRawJsonText(JSON.stringify(selectedAnime, null, 2));
+                        setEditorTab('json');
+                      }}
+                      className={`pb-3 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+                        editorTab === 'json'
+                          ? 'border-rose-500 text-rose-400 font-extrabold'
+                          : 'border-transparent text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      <Code className="h-3.5 w-3.5" />
+                      <span>4. Editor JSON Crudo</span>
+                    </button>
                   </div>
 
                   {/* Form Content */}
@@ -2686,6 +3005,46 @@ export default function AdminPanel() {
                             className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rose-500 leading-relaxed placeholder-neutral-600"
                             required
                           />
+                        </div>
+
+                        {/* Visibility (Active / Inactive) Switch */}
+                        <div className="p-3.5 rounded-2xl bg-neutral-900/90 border border-white/10 flex items-center justify-between">
+                          <div>
+                            <span className="text-white font-bold flex items-center gap-2">
+                              {selectedAnime.active !== false ? (
+                                <Eye className="h-4 w-4 text-emerald-400" />
+                              ) : (
+                                <EyeOff className="h-4 w-4 text-rose-400" />
+                              )}
+                              Visibilidad en la Plataforma
+                            </span>
+                            <p className="text-[11px] text-neutral-400 mt-0.5">
+                              {selectedAnime.active !== false
+                                ? "Visible para todos los espectadores en el catálogo público, carruseles y búsquedas."
+                                : "Oculto para el público. Solo los administradores pueden verlo y gestionarlo."}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedAnime({ ...selectedAnime, active: selectedAnime.active === false ? true : false })}
+                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                              selectedAnime.active !== false
+                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30"
+                                : "bg-rose-500/20 text-rose-400 border border-rose-500/40 hover:bg-rose-500/30"
+                            }`}
+                          >
+                            {selectedAnime.active !== false ? (
+                              <>
+                                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span>Activo (Público)</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="h-2 w-2 rounded-full bg-rose-400" />
+                                <span>Desactivado (Oculto)</span>
+                              </>
+                            )}
+                          </button>
                         </div>
                       </div>
                     )}
@@ -2880,6 +3239,80 @@ export default function AdminPanel() {
                           </div>
                         </div>
 
+                        {/* Extended Metadata: Studios, Season, Broadcast Day */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Estudio(s) de Animación</label>
+                            <input 
+                              type="text" 
+                              value={Array.isArray(selectedAnime.studios) ? selectedAnime.studios.join(", ") : (selectedAnime.studios || '')} 
+                              onChange={(e) => setSelectedAnime({ 
+                                ...selectedAnime, 
+                                studios: e.target.value.split(',').map(s => s.trim()).filter(Boolean) 
+                              })}
+                              placeholder="Ej: MAPPA, Ufotable, Bones"
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 placeholder-neutral-600"
+                            />
+                          </div>
+
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Temporada</label>
+                            <input 
+                              type="text" 
+                              value={selectedAnime.season || ''} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, season: e.target.value })}
+                              placeholder="Ej: Primavera 2026, Otoño 2024"
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 placeholder-neutral-600"
+                            />
+                          </div>
+
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Día de Emisión Semanal</label>
+                            <select 
+                              value={selectedAnime.broadcastDay || ''} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, broadcastDay: e.target.value })}
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 cursor-pointer"
+                            >
+                              <option value="">No especificado</option>
+                              <option value="Lunes">Lunes</option>
+                              <option value="Martes">Martes</option>
+                              <option value="Miércoles">Miércoles</option>
+                              <option value="Jueves">Jueves</option>
+                              <option value="Viernes">Viernes</option>
+                              <option value="Sábados">Sábados</option>
+                              <option value="Domingos">Domingos</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Extended Metadata: Trailer YouTube & Age Rating */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="sm:col-span-2 flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Trailer Oficial (Enlace YouTube)</label>
+                            <input 
+                              type="url" 
+                              value={selectedAnime.trailerUrl || ''} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, trailerUrl: e.target.value })}
+                              placeholder="https://www.youtube.com/watch?v=..."
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 placeholder-neutral-600"
+                            />
+                          </div>
+
+                          <div className="flex flex-col space-y-1.5">
+                            <label className="text-neutral-400 font-semibold">Clasificación de Edad</label>
+                            <select 
+                              value={selectedAnime.ageRating || '+13'} 
+                              onChange={(e) => setSelectedAnime({ ...selectedAnime, ageRating: e.target.value })}
+                              className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 cursor-pointer"
+                            >
+                              <option value="ATP">Todo Público (ATP)</option>
+                              <option value="+13">+13 (Adolescentes)</option>
+                              <option value="+16">+16 (Maduro)</option>
+                              <option value="+18">+18 (Solo Adultos)</option>
+                            </select>
+                          </div>
+                        </div>
+
                         {/* ID slug preview / customization */}
                         <div className="flex flex-col space-y-1.5">
                           <label className="text-neutral-400 font-semibold">Identificador / Slug único</label>
@@ -2895,22 +3328,89 @@ export default function AdminPanel() {
                       </div>
                     )}
 
+                    {/* TAB 4: EDITOR JSON CRUDO (METADATA LIBRE A TU ANTOJO) */}
+                    {editorTab === 'json' && (
+                      <div className="space-y-4 animate-fade-in">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-neutral-900/80 p-3.5 rounded-2xl border border-white/5">
+                          <div className="flex items-center gap-2 text-neutral-200">
+                            <Code className="h-4 w-4 text-rose-400" />
+                            <span className="font-bold">Editor de Metadata JSON Directo</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try {
+                                  const parsed = JSON.parse(rawJsonText);
+                                  setRawJsonText(JSON.stringify(parsed, null, 2));
+                                } catch (err: any) {
+                                  alert("JSON no válido: " + err.message);
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white rounded-xl text-[11px] font-bold cursor-pointer transition-all border border-white/5"
+                            >
+                              Formatear JSON
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try {
+                                  const parsed = JSON.parse(rawJsonText);
+                                  setSelectedAnime(parsed);
+                                  alert("✅ Campos sincronizados exitosamente desde el JSON.");
+                                } catch (err: any) {
+                                  alert("Error de sintaxis en JSON: " + err.message);
+                                }
+                              }}
+                              className="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-xl text-[11px] font-bold cursor-pointer transition-all border border-rose-500/30"
+                            >
+                              Aplicar a Formulario
+                            </button>
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-neutral-400 leading-relaxed">
+                          Modifica a tu antojo cualquier propiedad descargada del anime (títulos, sinopsis, episodios, servidores, campos personalizados o etiquetas avanzadas). Los cambios se persistirán íntegramente en <code className="text-rose-400 font-mono">catalog.json</code>.
+                        </p>
+
+                        <textarea
+                          rows={16}
+                          value={rawJsonText}
+                          onChange={(e) => setRawJsonText(e.target.value)}
+                          className="w-full bg-neutral-950 font-mono text-[11px] text-emerald-400 p-4 rounded-2xl border border-white/10 focus:outline-none focus:border-rose-500 leading-relaxed shadow-inner"
+                          placeholder="Pega o edita el objeto JSON aquí..."
+                          spellCheck={false}
+                        />
+                      </div>
+                    )}
+
                     {/* Modal Footer Controls */}
                     <div className="flex items-center justify-between pt-4 border-t border-white/10">
                       <div className="flex gap-2">
                         {editorTab !== 'general' && (
                           <button
                             type="button"
-                            onClick={() => setEditorTab(editorTab === 'metadata' ? 'images' : 'general')}
+                            onClick={() => {
+                              if (editorTab === 'json') setEditorTab('metadata');
+                              else if (editorTab === 'metadata') setEditorTab('images');
+                              else setEditorTab('general');
+                            }}
                             className="bg-white/5 hover:bg-white/10 text-neutral-300 font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors"
                           >
                             ← Anterior
                           </button>
                         )}
-                        {editorTab !== 'metadata' && (
+                        {editorTab !== 'json' && (
                           <button
                             type="button"
-                            onClick={() => setEditorTab(editorTab === 'general' ? 'images' : 'metadata')}
+                            onClick={() => {
+                              if (editorTab === 'general') setEditorTab('images');
+                              else if (editorTab === 'images') setEditorTab('metadata');
+                              else {
+                                setRawJsonText(JSON.stringify(selectedAnime, null, 2));
+                                setEditorTab('json');
+                              }
+                            }}
                             className="bg-white/10 hover:bg-white/15 text-white font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors"
                           >
                             Siguiente →
@@ -3020,30 +3520,6 @@ export default function AdminPanel() {
                     </button>
                   </div>
 
-                </div>
-              </div>
-            )}
-
-            {/* ── TOAST NOTIFICATION POPUP ── */}
-            {toastMessage && (
-              <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
-                <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border backdrop-blur-md ${
-                  toastMessage.type === 'success' 
-                    ? 'bg-neutral-900/95 border-emerald-500/40 text-white' 
-                    : 'bg-neutral-900/95 border-rose-500/40 text-white'
-                }`}>
-                  {toastMessage.type === 'success' ? (
-                    <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0" />
-                  ) : (
-                    <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
-                  )}
-                  <span className="text-xs font-semibold">{toastMessage.text}</span>
-                  <button 
-                    onClick={() => setToastMessage(null)}
-                    className="text-neutral-400 hover:text-white p-1 ml-2 transition-colors cursor-pointer"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
                 </div>
               </div>
             )}
@@ -3259,6 +3735,179 @@ export default function AdminPanel() {
           </div>
         )}
 
+        {/* ROLES & ADMINISTRATORS MANAGEMENT TAB */}
+        {activeTab === 'roles' && (
+          <div className="space-y-8 animate-slide-in">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30">
+                    <ShieldCheck className="h-4 w-4 stroke-[2.5]" />
+                  </div>
+                  <h1 className="text-xl font-extrabold text-white tracking-tight">Gestión de Roles & Administradores</h1>
+                </div>
+                <p className="text-xs text-neutral-400">
+                  Controla y autoriza qué personas tienen permisos de administrador para gestionar el catálogo, servidores, usuarios y contenido.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setNewAdminEmail('');
+                  setNewAdminName('');
+                  setNewAdminRole('admin');
+                  setIsAddAdminModalOpen(true);
+                }}
+                className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-rose-600/30 transition-all cursor-pointer active:scale-95"
+              >
+                <Plus className="h-4 w-4 stroke-[3]" />
+                <span>Agregar Nuevo Administrador</span>
+              </button>
+            </div>
+
+            {/* Security KPI Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-neutral-900/40 border border-white/5 p-5 rounded-2xl flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Administradores Activos</span>
+                  <div className="text-2xl font-black text-white mt-0.5">{adminRoles.length}</div>
+                  <span className="text-[10px] text-neutral-500">Con acceso autenticado al panel</span>
+                </div>
+              </div>
+
+              <div className="bg-neutral-900/40 border border-amber-500/20 p-5 rounded-2xl flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0">
+                  <Crown className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Super Administrador</span>
+                  <div className="text-sm font-black text-white mt-0.5 truncate max-w-[200px]">Juan Ramón Báez</div>
+                  <span className="text-[10px] text-amber-500/80 flex items-center gap-1 font-mono">
+                    <Lock className="h-3 w-3" /> Blindado & Permanente
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-neutral-900/40 border border-emerald-500/20 p-5 rounded-2xl flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                  <Lock className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Políticas de Acceso</span>
+                  <div className="text-xs font-bold text-white mt-0.5">Filtro en Capas</div>
+                  <span className="text-[10px] text-neutral-400">Verificación por email + rol dinámico</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Admins Table */}
+            <div className="bg-neutral-900/30 border border-white/5 rounded-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/5 bg-black/20 flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-extrabold text-white">Lista de Administradores Registrados</h2>
+                  <p className="text-[11px] text-neutral-400">Solo estas cuentas pueden ingresar al panel de administración MegaAnime.</p>
+                </div>
+                <span className="text-[11px] font-mono text-neutral-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                  {adminRoles.length} administradores
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-black/40 text-neutral-400 font-bold uppercase tracking-wider">
+                      <th className="py-3 px-6">Administrador</th>
+                      <th className="py-3 px-6">Correo Electrónico</th>
+                      <th className="py-3 px-6">Rol de Acceso</th>
+                      <th className="py-3 px-6">Fecha de Alta</th>
+                      <th className="py-3 px-6 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-neutral-300">
+                    {adminRoles.map((admin) => {
+                      const isOwner = admin.email.toLowerCase() === "baezcabrera.j.r@gmail.com" || admin.role === "super_admin";
+                      return (
+                        <tr key={admin.email} className="hover:bg-white/5 transition-colors">
+                          <td className="py-3.5 px-6">
+                            <div className="flex items-center gap-3">
+                              <div className={`h-9 w-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0 border ${
+                                isOwner 
+                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' 
+                                  : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                              }`}>
+                                {admin.name ? admin.name.charAt(0).toUpperCase() : admin.email.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-white flex items-center gap-1.5">
+                                  {admin.name || admin.email.split('@')[0]}
+                                  {isOwner && (
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-extrabold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                      Owner
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-[10px] text-neutral-500">Agregado por: {admin.addedBy || 'Sistema'}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-6">
+                            <span className="font-mono text-xs text-neutral-300 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                              {admin.email}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-6">
+                            {admin.role === 'super_admin' ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                <Crown className="h-3 w-3" />
+                                Super Admin
+                              </span>
+                            ) : admin.role === 'moderator' ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                <ShieldCheck className="h-3 w-3" />
+                                Moderador
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                                <ShieldCheck className="h-3 w-3" />
+                                Administrador
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-6 text-neutral-400 text-[11px]">
+                            {admin.addedAt ? new Date(admin.addedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Permanente'}
+                          </td>
+                          <td className="py-3.5 px-6 text-right">
+                            {isOwner ? (
+                              <div className="inline-flex items-center gap-1 text-[11px] text-amber-400/80 font-bold px-3 py-1 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                                <Lock className="h-3.5 w-3.5" />
+                                <span>Inmutable</span>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleRemoveAdmin(admin.email)}
+                                className="bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 font-bold px-3 py-1.5 rounded-xl text-[11px] transition-colors cursor-pointer inline-flex items-center gap-1.5 border border-rose-500/20 hover:border-rose-500/40 active:scale-95"
+                                title="Revocar permisos de administrador"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>Quitar Acceso</span>
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 4. CRM / USER MANAGEMENT TAB */}
         {activeTab === 'usuarios' && (
           <div className="space-y-8 animate-slide-in">
@@ -3420,6 +4069,43 @@ export default function AdminPanel() {
                       >
                         Restablecer Contraseña
                       </button>
+
+                      {/* Admin Privileges Toggle */}
+                      {(() => {
+                        const isThisUserAdmin = adminRoles.some(r => r.email.toLowerCase() === selectedUser.email.toLowerCase());
+                        const isMainOwner = selectedUser.email.toLowerCase() === "baezcabrera.j.r@gmail.com";
+                        return (
+                          <div className="pt-2 border-t border-white/5">
+                            {isMainOwner ? (
+                              <div className="flex items-center justify-center gap-1.5 text-[10px] text-amber-400 font-bold px-2 py-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                                <Lock className="h-3.5 w-3.5" />
+                                <span>Super Admin Propietario (Blindado)</span>
+                              </div>
+                            ) : isThisUserAdmin ? (
+                              <button
+                                onClick={() => handleRemoveAdmin(selectedUser.email)}
+                                className="w-full bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 font-bold py-2 rounded-xl text-[10px] transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-rose-500/20"
+                              >
+                                <ShieldAlert className="h-3.5 w-3.5" />
+                                <span>Revocar Permisos de Administrador</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setNewAdminEmail(selectedUser.email);
+                                  setNewAdminName(selectedUser.name);
+                                  setNewAdminRole('admin');
+                                  setIsAddAdminModalOpen(true);
+                                }}
+                                className="w-full bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 font-bold py-2 rounded-xl text-[10px] transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-indigo-500/30"
+                              >
+                                <ShieldCheck className="h-3.5 w-3.5" />
+                                <span>Promover a Administrador</span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 ) : (
@@ -4045,6 +4731,130 @@ export default function AdminPanel() {
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL AGREGAR ADMINISTRADOR ── */}
+      {isAddAdminModalOpen && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-neutral-950 border border-white/10 rounded-3xl max-w-md w-full p-6 space-y-6 shadow-2xl relative animate-scale-up">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                  <ShieldCheck className="h-5 w-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-white">Otorgar Rol Administrativo</h3>
+                  <p className="text-[11px] text-neutral-400">Asigna permisos de administración en MegaAnime</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddAdminModalOpen(false)}
+                className="text-neutral-400 hover:text-white p-1 rounded-xl transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleAddAdminSubmit} className="space-y-4 text-xs">
+              <div className="flex flex-col space-y-1.5">
+                <label className="text-neutral-300 font-bold">Correo Electrónico del Usuario *</label>
+                <input
+                  type="email"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                  placeholder="usuario@ejemplo.com"
+                  required
+                  className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-rose-500 placeholder-neutral-600"
+                />
+                <span className="text-[10px] text-neutral-500">Debe coincidir con la cuenta de Google o email con el que inicia sesión.</span>
+              </div>
+
+              <div className="flex flex-col space-y-1.5">
+                <label className="text-neutral-300 font-bold">Nombre o Alias Completo</label>
+                <input
+                  type="text"
+                  value={newAdminName}
+                  onChange={(e) => setNewAdminName(e.target.value)}
+                  placeholder="Ej: Erickson Flores"
+                  className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-rose-500 placeholder-neutral-600"
+                />
+              </div>
+
+              <div className="flex flex-col space-y-1.5">
+                <label className="text-neutral-300 font-bold">Rol a Asignar</label>
+                <select
+                  value={newAdminRole}
+                  onChange={(e) => setNewAdminRole(e.target.value as 'admin' | 'moderator')}
+                  className="bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-rose-500 cursor-pointer"
+                >
+                  <option value="admin">Administrador (Acceso completo a Catálogo, Servidores y Ajustes)</option>
+                  <option value="moderator">Moderador (Gestión de contenido y reportes)</option>
+                </select>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-300/90 leading-relaxed">
+                🛡️ <strong>Aviso de Seguridad:</strong> El nuevo administrador podrá modificar catálogo, subir contenidos y ver estadísticas. Esta acción puede ser revocada en cualquier momento desde la pestaña Roles.
+              </div>
+
+              {/* Footer buttons */}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddAdminModalOpen(false)}
+                  className="bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white font-bold px-4 py-2.5 rounded-xl cursor-pointer transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingRole}
+                  className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold px-5 py-2.5 rounded-xl cursor-pointer transition-all shadow-lg shadow-rose-600/30 active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSubmittingRole ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                      <span>Guardando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="h-4 w-4" />
+                      <span>Asignar Permisos</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* ── TOAST NOTIFICATION POPUP (GLOBAL SCOPE) ── */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border backdrop-blur-md ${
+            toastMessage.type === 'success' 
+              ? 'bg-neutral-900/95 border-emerald-500/40 text-white' 
+              : 'bg-neutral-900/95 border-rose-500/40 text-white'
+          }`}>
+            {toastMessage.type === 'success' ? (
+              <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0" />
+            ) : (
+              <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+            )}
+            <span className="text-xs font-semibold">{toastMessage.text}</span>
+            <button 
+              onClick={() => setToastMessage(null)}
+              className="text-neutral-400 hover:text-white p-1 ml-2 transition-colors cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
       )}

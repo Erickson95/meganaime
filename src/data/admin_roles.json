@@ -1,0 +1,16 @@
+[
+  {
+    "email": "baezcabrera.j.r@gmail.com",
+    "name": "Juan Ramón Báez",
+    "role": "super_admin",
+    "addedAt": "2026-01-10T00:00:00.000Z",
+    "addedBy": "system"
+  },
+  {
+    "email": "ericksonflores20@gmail.com",
+    "name": "Erickson Flores",
+    "role": "admin",
+    "addedAt": "2026-09-08T00:00:00.000Z",
+    "addedBy": "baezcabrera.j.r@gmail.com"
+  }
+]

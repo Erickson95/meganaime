@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && cp src/data/catalog.json dist/catalog.json && cp src/data/drive_episodes.json dist/drive_episodes.json && (cp src/data/r2_episodes.json dist/r2_episodes.json || true) && node generateSitemap.js",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && cp src/data/catalog.json dist/catalog.json && cp src/data/drive_episodes.json dist/drive_episodes.json && (cp src/data/r2_episodes.json dist/r2_episodes.json || true) && (cp src/data/admin_roles.json dist/admin_roles.json || true) && node generateSitemap.js",
     "start": "node dist/server.cjs",
     "auto-download": "node scripts/auto_airing_downloader.cjs",
     "auto-download:watch": "node scripts/auto_airing_downloader.cjs --watch",

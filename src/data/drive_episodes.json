@@ -199378,5 +199378,202 @@
         "uploadedAt": "2026-09-06T08:54:09.696Z"
       }
     }
+  },
+  "tioanime-gachiakuta": {
+    "title": "Gachiakuta",
+    "episodes": {
+      "ep-1": {
+        "fileId": "1nRt4z6fb68a6Y8LJKoagsB3fkOrrSNuJ",
+        "streamUrl": "https://drive.google.com/file/d/1nRt4z6fb68a6Y8LJKoagsB3fkOrrSNuJ/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 01.mp4",
+        "filename": "Gachiakuta - Episodio 01.mp4",
+        "sizeMB": "362.78",
+        "uploadedAt": "2026-09-08T19:57:52.793Z"
+      },
+      "ep-2": {
+        "fileId": "1bxKeB0LUVBc6q5rscgSCHPIoU428QJ4_",
+        "streamUrl": "https://drive.google.com/file/d/1bxKeB0LUVBc6q5rscgSCHPIoU428QJ4_/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 02.mp4",
+        "filename": "Gachiakuta - Episodio 02.mp4",
+        "sizeMB": "406.31",
+        "uploadedAt": "2026-09-08T20:02:09.291Z"
+      },
+      "ep-5": {
+        "fileId": "1o4VrptCQ7PHxdMKdONtPGVoGTqwy9dg_",
+        "streamUrl": "https://drive.google.com/file/d/1o4VrptCQ7PHxdMKdONtPGVoGTqwy9dg_/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 05.mp4",
+        "filename": "Gachiakuta - Episodio 05.mp4",
+        "sizeMB": "353.26",
+        "uploadedAt": "2026-09-08T20:22:45.175Z"
+      },
+      "ep-7": {
+        "fileId": "1TNtQHBJ8cX-rCLHJYaxghU2mo1rIYRrf",
+        "streamUrl": "https://drive.google.com/file/d/1TNtQHBJ8cX-rCLHJYaxghU2mo1rIYRrf/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 07.mp4",
+        "filename": "Gachiakuta - Episodio 07.mp4",
+        "sizeMB": "395.59",
+        "uploadedAt": "2026-09-08T20:26:41.320Z"
+      },
+      "ep-9": {
+        "fileId": "1BEULVc2opH3QjuRA5N9yIXcsqBnRXqGo",
+        "streamUrl": "https://drive.google.com/file/d/1BEULVc2opH3QjuRA5N9yIXcsqBnRXqGo/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 09.mp4",
+        "filename": "Gachiakuta - Episodio 09.mp4",
+        "sizeMB": "363.54",
+        "uploadedAt": "2026-09-08T21:20:49.665Z"
+      },
+      "ep-11": {
+        "fileId": "1zHkl9QHcdhZpDKXI7bZI4NMkFbX-gM4e",
+        "streamUrl": "https://drive.google.com/file/d/1zHkl9QHcdhZpDKXI7bZI4NMkFbX-gM4e/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 11.mp4",
+        "filename": "Gachiakuta - Episodio 11.mp4",
+        "sizeMB": "363.52",
+        "uploadedAt": "2026-09-08T21:25:43.456Z"
+      },
+      "ep-13": {
+        "fileId": "1LUgdWunBVoSn3QYiP2oLeVOqyDLzMVr1",
+        "streamUrl": "https://drive.google.com/file/d/1LUgdWunBVoSn3QYiP2oLeVOqyDLzMVr1/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 13.mp4",
+        "filename": "Gachiakuta - Episodio 13.mp4",
+        "sizeMB": "400.56",
+        "uploadedAt": "2026-09-08T21:38:03.003Z"
+      },
+      "ep-15": {
+        "fileId": "19IlOMystGBjCx-P5CEacPPXPCszmxPMd",
+        "streamUrl": "https://drive.google.com/file/d/19IlOMystGBjCx-P5CEacPPXPCszmxPMd/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 15.mp4",
+        "filename": "Gachiakuta - Episodio 15.mp4",
+        "sizeMB": "457.39",
+        "uploadedAt": "2026-09-08T21:52:56.612Z"
+      },
+      "ep-17": {
+        "fileId": "1NvUmcWLz_Ga0sAnPxsRR6ago915OLUPM",
+        "streamUrl": "https://drive.google.com/file/d/1NvUmcWLz_Ga0sAnPxsRR6ago915OLUPM/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 17.mp4",
+        "filename": "Gachiakuta - Episodio 17.mp4",
+        "sizeMB": "414.78",
+        "uploadedAt": "2026-09-08T21:57:58.106Z"
+      },
+      "ep-19": {
+        "fileId": "1kJjmMhnXKA93K7sXgPrnh0hW1uPmjVHP",
+        "streamUrl": "https://drive.google.com/file/d/1kJjmMhnXKA93K7sXgPrnh0hW1uPmjVHP/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 19.mp4",
+        "filename": "Gachiakuta - Episodio 19.mp4",
+        "sizeMB": "540.52",
+        "uploadedAt": "2026-09-08T22:02:59.271Z"
+      },
+      "ep-21": {
+        "fileId": "1t4juJFd_t_PhwmGTgAV8tdtTVl8VGohS",
+        "streamUrl": "https://drive.google.com/file/d/1t4juJFd_t_PhwmGTgAV8tdtTVl8VGohS/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 21.mp4",
+        "filename": "Gachiakuta - Episodio 21.mp4",
+        "sizeMB": "576.75",
+        "uploadedAt": "2026-09-08T22:08:58.998Z"
+      },
+      "ep-23": {
+        "fileId": "1P1EcVOCf-GEyTU8N6dOLBIQSu6bH0mwY",
+        "streamUrl": "https://drive.google.com/file/d/1P1EcVOCf-GEyTU8N6dOLBIQSu6bH0mwY/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 23.mp4",
+        "filename": "Gachiakuta - Episodio 23.mp4",
+        "sizeMB": "389.90",
+        "uploadedAt": "2026-09-08T22:21:52.229Z"
+      },
+      "ep-3": {
+        "fileId": "13CYhuwpMRLjEOnLZ68B4NvsOu0Tka01C",
+        "streamUrl": "https://drive.google.com/file/d/13CYhuwpMRLjEOnLZ68B4NvsOu0Tka01C/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 03.mp4",
+        "filename": "Gachiakuta - Episodio 03.mp4",
+        "sizeMB": "329.92",
+        "uploadedAt": "2026-09-08T22:32:00.541Z"
+      },
+      "ep-4": {
+        "fileId": "11cWzFbCFjTHSUNnMshA1YcPcd7ktXwpu",
+        "streamUrl": "https://drive.google.com/file/d/11cWzFbCFjTHSUNnMshA1YcPcd7ktXwpu/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 04.mp4",
+        "filename": "Gachiakuta - Episodio 04.mp4",
+        "sizeMB": "379.78",
+        "uploadedAt": "2026-09-08T22:36:46.236Z"
+      },
+      "ep-6": {
+        "fileId": "1-zSQ9EeGu1dg5xjw3BtPG7wt1I5ieOfL",
+        "streamUrl": "https://drive.google.com/file/d/1-zSQ9EeGu1dg5xjw3BtPG7wt1I5ieOfL/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 06.mp4",
+        "filename": "Gachiakuta - Episodio 06.mp4",
+        "sizeMB": "356.30",
+        "uploadedAt": "2026-09-08T22:54:39.588Z"
+      },
+      "ep-8": {
+        "fileId": "1v5jq_cz_PNEDeBiuD7UkOhRdlsUQ1y2n",
+        "streamUrl": "https://drive.google.com/file/d/1v5jq_cz_PNEDeBiuD7UkOhRdlsUQ1y2n/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 08.mp4",
+        "filename": "Gachiakuta - Episodio 08.mp4",
+        "sizeMB": "319.80",
+        "uploadedAt": "2026-09-08T22:59:45.242Z"
+      },
+      "ep-10": {
+        "fileId": "1ZC4tVOvgARSxpNF-5XDxj09R06vvNoIl",
+        "streamUrl": "https://drive.google.com/file/d/1ZC4tVOvgARSxpNF-5XDxj09R06vvNoIl/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 10.mp4",
+        "filename": "Gachiakuta - Episodio 10.mp4",
+        "sizeMB": "427.13",
+        "uploadedAt": "2026-09-08T23:21:09.418Z"
+      },
+      "ep-12": {
+        "fileId": "1oOM8_ujcghfq3400cacbGHEM_UH86Bg3",
+        "streamUrl": "https://drive.google.com/file/d/1oOM8_ujcghfq3400cacbGHEM_UH86Bg3/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 12.mp4",
+        "filename": "Gachiakuta - Episodio 12.mp4",
+        "sizeMB": "324.82",
+        "uploadedAt": "2026-09-08T23:28:54.828Z"
+      },
+      "ep-14": {
+        "fileId": "1CuJPMJCINribRhHFuM_LYosZ8jhmqQDx",
+        "streamUrl": "https://drive.google.com/file/d/1CuJPMJCINribRhHFuM_LYosZ8jhmqQDx/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 14.mp4",
+        "filename": "Gachiakuta - Episodio 14.mp4",
+        "sizeMB": "460.01",
+        "uploadedAt": "2026-09-09T00:00:57.874Z"
+      },
+      "ep-16": {
+        "fileId": "1GTTL9SRcIF9bOkaonuteE23bRRpJzYr7",
+        "streamUrl": "https://drive.google.com/file/d/1GTTL9SRcIF9bOkaonuteE23bRRpJzYr7/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 16.mp4",
+        "filename": "Gachiakuta - Episodio 16.mp4",
+        "sizeMB": "466.52",
+        "uploadedAt": "2026-09-09T00:10:57.455Z"
+      },
+      "ep-18": {
+        "fileId": "10lVaaO7K3xGOIgUxdbYG4iBoSZni0wTf",
+        "streamUrl": "https://drive.google.com/file/d/10lVaaO7K3xGOIgUxdbYG4iBoSZni0wTf/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 18.mp4",
+        "filename": "Gachiakuta - Episodio 18.mp4",
+        "sizeMB": "476.34",
+        "uploadedAt": "2026-09-09T00:21:03.878Z"
+      },
+      "ep-20": {
+        "fileId": "19h2l2O3GwF-mxeShLFfjIf6RMyMDs9BU",
+        "streamUrl": "https://drive.google.com/file/d/19h2l2O3GwF-mxeShLFfjIf6RMyMDs9BU/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 20.mp4",
+        "filename": "Gachiakuta - Episodio 20.mp4",
+        "sizeMB": "507.67",
+        "uploadedAt": "2026-09-09T01:14:47.420Z"
+      },
+      "ep-22": {
+        "fileId": "1mWG2LHDZJrdVYlGI9-ki-bYB-khdAXMd",
+        "streamUrl": "https://drive.google.com/file/d/1mWG2LHDZJrdVYlGI9-ki-bYB-khdAXMd/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 22.mp4",
+        "filename": "Gachiakuta - Episodio 22.mp4",
+        "sizeMB": "741.69",
+        "uploadedAt": "2026-09-09T01:24:59.558Z"
+      },
+      "ep-24": {
+        "fileId": "125tpreMyfVKziCSy9bsaYQtnwR4xZeIf",
+        "streamUrl": "https://drive.google.com/file/d/125tpreMyfVKziCSy9bsaYQtnwR4xZeIf/preview",
+        "gdrivePath": "Gachiakuta/Gachiakuta - Episodio 24.mp4",
+        "filename": "Gachiakuta - Episodio 24.mp4",
+        "sizeMB": "382.86",
+        "uploadedAt": "2026-09-09T01:43:50.588Z"
+      }
+    }
   }
 }
